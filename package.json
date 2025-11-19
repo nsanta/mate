@@ -1,0 +1,16 @@
+{
+  "name": "mate.js",
+  "type": "module",
+  "scripts": {
+    "build": "rolldown src/main.js --file dist/bundle.js",
+    "server": "node server/index.js",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsdom": "^27.2.0",
+    "rolldown": "^1.0.0-beta.49",
+    "vitest": "^4.0.10"
+  }
+}
