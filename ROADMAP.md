@@ -57,6 +57,10 @@ Allowing developers to extend the library with custom logic.
 ### Actions & Presenters
 - [x] `@controller`: Support for custom JavaScript controllers to handle complex logic beyond standard actions and presenters.
 
+### Distributing
+
+- [ ] Support for distributing Mate.js as a module.
+- [ ] Support for distributing Mate.js as a script via CDN.
 
 ### Planned
 
