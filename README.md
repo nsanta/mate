@@ -121,3 +121,15 @@ Handling presentation:
   UpdateContent
 </div>
 ```
+
+## GitHub Pages Demo
+
+A live demo of **mate.js** is hosted via GitHub Pages. You can view the examples and documentation at:
+
+```
+https://<YOUR_GITHUB_USERNAME>.github.io/mate/
+```
+
+The site is automatically built from the `docs/` folder using a GitHub Actions workflow.
+
+Feel free to explore the interactive examples and adapt them for your own projects.
