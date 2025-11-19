@@ -292,7 +292,18 @@
 
         <section id="brewing">
             <h2>Preparation (Installation)</h2>
-            <p>To start brewing, simply import the library into your main JavaScript kettle and initialize it.</p>
+            <p>To start brewing, you have two options:</p>
+
+            <h3 style="color: var(--gourd-brown); margin-top: 2rem; margin-bottom: 1rem;">Option 1: CDN (Quick Start)
+            </h3>
+            <p>Include Mate.js directly from a CDN in your HTML:</p>
+            <pre>
+&lt;!-- Add this to your HTML head or before closing body tag --&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"&gt;&lt;/script&gt;</pre>
+
+            <h3 style="color: var(--gourd-brown); margin-top: 2rem; margin-bottom: 1rem;">Option 2: ES Module Import
+            </h3>
+            <p>Import the library into your main JavaScript file:</p>
             <pre>
 import mate from './path/to/mate.js';
 

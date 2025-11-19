@@ -129,3 +129,11 @@ A live demo of **mate.js** is hosted via GitHub Pages. You can view the examples
 The site is automatically built from the `docs/` folder using a GitHub Actions workflow.
 
 Feel free to explore the interactive examples and adapt them for your own projects.
+
+## CDN
+
+You can include `mate.js` in your project by importing it from a CDN.
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"></script>
+```
