@@ -4,12 +4,24 @@ A lightweight JavaScript library for declarative DOM interactions. `mate.js` all
 
 ## Installation
 
+### NPM
+
 You can include `mate.js` in your project by importing it into your main JavaScript file.
 
 ```javascript
-import mate from './path/to/mate.js';
+import mate from '@nsanta/mate/mate.js';
 
 mate();
+
+
+```
+
+### CDN
+
+You can include `mate.js` in your project by importing it from a CDN.
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"></script>
 ```
 
 ## Usage
@@ -130,10 +142,4 @@ The site is automatically built from the `docs/` folder using a GitHub Actions w
 
 Feel free to explore the interactive examples and adapt them for your own projects.
 
-## CDN
 
-You can include `mate.js` in your project by importing it from a CDN.
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"></script>
-```

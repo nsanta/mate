@@ -1,5 +1,5 @@
 {
-  "name": "mate.js",
+  "name": "@nsanta/mate",
   "type": "module",
   "scripts": {
     "build": "rolldown src/main.js --file dist/bundle.js",
@@ -12,5 +12,23 @@
     "jsdom": "^27.2.0",
     "rolldown": "^1.0.0-beta.49",
     "vitest": "^4.0.10"
-  }
+  },
+  "version": "0.0.1",
+  "description": "A lightweight, HTMX-inspired library for declarative interactions.",
+  "main": "rolldown.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nsanta/mate.git"
+  },
+  "author": "Nicolas Santa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nsanta/mate/issues"
+  },
+  "homepage": "https://github.com/nsanta/mate#readme"
 }

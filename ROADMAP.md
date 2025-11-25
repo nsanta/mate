@@ -12,6 +12,7 @@ The core functionality is implemented, allowing for basic declarative interactio
 - [x] `load`: Trigger actions when an element triggers the load event.
 
 ### Actions
+- [x] `@event`: Support for custom events.
 - [x] `@request`: Perform HTTP requests (GET, POST, etc.).
 
 ### Presenters
@@ -19,6 +20,9 @@ The core functionality is implemented, allowing for basic declarative interactio
 - [x] `@outer`: Replace the outer HTML of the target.
 - [x] `@id`: Update a specific element by its ID.
 - [x] `@class`: Update elements by their class name.
+- [x] `@append`: Append HTML to the target.
+- [x] `@prepend`: Prepend HTML to the target.
+
 
 ---
 
@@ -44,7 +48,7 @@ Expanding the range of events to support richer user interactions.
 Adding support for real-time and streaming data.
 
 ### Actions
-- [x] `@event`: Support for custom events.
+
 - [ ] `@streams`: Support for HTTP Streams for real-time updates.
 - [ ] `@ws`: Support for Web Sockets for bidirectional communication.
 
@@ -59,8 +63,8 @@ Allowing developers to extend the library with custom logic.
 
 ### Distributing
 
-- [ ] Support for distributing Mate.js as a module.
-- [ ] Support for distributing Mate.js as a script via CDN.
+- [x] Support for distributing Mate.js as a module.
+- [x] Support for distributing Mate.js as a script via CDN.
 
 ### Planned
 

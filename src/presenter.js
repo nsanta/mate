@@ -58,6 +58,28 @@ async function byClass(node, response, klass, option) {
 }
 
 /**
+ * Appends the response text to the node.
+ * 
+ * @async
+ * @param {HTMLElement} node - The DOM element.
+ * @param {Response} response - The fetch response.
+ */
+async function append(node, response) {
+  node.insertAdjacentHTML('beforeend', await response.text());
+}
+
+/**
+ * Prepends the response text to the node.
+ * 
+ * @async
+ * @param {HTMLElement} node - The DOM element.
+ * @param {Response} response - The fetch response.
+ */
+async function prepend(node, response) {
+  node.insertAdjacentHTML('afterbegin', await response.text());
+}
+
+/**
  * Calls a method on the node's controller with the response.
  * 
  * @async
@@ -74,6 +96,8 @@ const PRESENTERS = {
   '@outer': outer,
   '@id': byId,
   '@class': byClass,
+  '@append': append,
+  '@prepend': prepend,
   '@controller': controller,
 }
 

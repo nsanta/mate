@@ -187,6 +187,30 @@
                 </div>
             </div>
         </section>
+
+        <!-- Section 11: Presenters (@append) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">11. Presenters (@append)</h2>
+            <p class="mb-4 text-gray-600">Clicking the container should append content inside it.</p>
+
+            <div class="p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
+                mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@append">
+                <p class="font-medium text-center text-gray-500 mb-4">Click anywhere in this box to append content</p>
+                <div class="p-2 bg-white border border-gray-200 rounded mb-2">Initial Content</div>
+            </div>
+        </section>
+
+        <!-- Section 12: Presenters (@prepend) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">12. Presenters (@prepend)</h2>
+            <p class="mb-4 text-gray-600">Clicking the container should prepend content inside it.</p>
+
+            <div class="p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
+                mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@prepend">
+                <p class="font-medium text-center text-gray-500 mb-4">Click anywhere in this box to prepend content</p>
+                <div class="p-2 bg-white border border-gray-200 rounded mb-2">Initial Content</div>
+            </div>
+        </section>
     </div>
 
 </body>

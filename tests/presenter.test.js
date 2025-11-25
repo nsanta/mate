@@ -78,4 +78,22 @@ describe('presenter', () => {
 
         expect(mockController.update).toHaveBeenCalledWith(response);
     });
+
+    it('should handle @append', async () => {
+        node.innerHTML = '<span>existing</span>';
+        node.setAttribute(ATTRIBUTES.PRESENTER, '@append:_:_');
+
+        await present(node, response);
+
+        expect(node.innerHTML).toBe('<span>existing</span><p>content</p>');
+    });
+
+    it('should handle @prepend', async () => {
+        node.innerHTML = '<span>existing</span>';
+        node.setAttribute(ATTRIBUTES.PRESENTER, '@prepend:_:_');
+
+        await present(node, response);
+
+        expect(node.innerHTML).toBe('<p>content</p><span>existing</span>');
+    });
 });
