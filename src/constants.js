@@ -1,7 +1,3 @@
-/**
- * Defines the custom attributes used by the library to bind events and data.
- * @constant {Object}
- */
 export const ATTRIBUTES = {
     TRIGGER: "mt-on",
     CONTROLLER: "mt-controller",
@@ -9,4 +5,23 @@ export const ATTRIBUTES = {
     REQUEST_PATH: "mt-path",
     REQUEST_DATA: "mt-data",
     PRESENTER: "mt-pr",
+    EVENT_PREFIX: "mx-",
+    MX_CONTROLLER: "mx-controller",
+    MX_METHOD: "mx-method",
+    MX_PATH: "mx-path",
+    MX_DATA: "mx-data",
+};
+
+export const MODIFIERS = {
+    PREVENT: 'prevent',
+    STOP: 'stop',
+    ONCE: 'once',
+    SELF: 'self',
+    DEBOUNCE: 'debounce',
+    THROTTLE: 'throttle',
+    CAPTURE: 'capture',
+    PASSIVE: 'passive',
+    WINDOW: 'window',
+    DOCUMENT: 'document',
+    OUTSIDE: 'outside',
 };

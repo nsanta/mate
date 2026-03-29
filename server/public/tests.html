@@ -211,6 +211,93 @@
                 <div class="p-2 bg-white border border-gray-200 rounded mb-2">Initial Content</div>
             </div>
         </section>
+
+        <!-- Section 13: mx-* Syntax (Basic) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">13. mx-* Syntax (Basic)</h2>
+            <p class="mb-4 text-gray-600">New event-centric syntax: <code>mx-click="@request:@inner"</code></p>
+
+            <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                <button class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                    mx-click="@request:@inner" mx-path="/test-content">
+                    mx-click="@request:@inner"
+                </button>
+            </div>
+        </section>
+
+        <!-- Section 14: mx-* with @id presenter -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">14. mx-* with @id Presenter</h2>
+            <p class="mb-4 text-gray-600">New syntax with target: <code>mx-click="@request:@id:target-div"</code></p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md">
+                    <button class="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
+                        mx-click="@request:@id:mx-target-div" mx-path="/test-content">
+                        Update Target
+                    </button>
+                </div>
+
+                <div id="mx-target-div"
+                    class="flex items-center justify-center p-8 bg-gray-200 rounded-md text-gray-500 italic border border-gray-300">
+                    Target content will appear here...
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 15: mx-* with .prevent modifier -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">15. mx-* with .prevent Modifier</h2>
+            <p class="mb-4 text-gray-600">Modifier syntax: <code>mx-click.prevent="@request:@inner"</code></p>
+
+            <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                <a href="https://example.com" class="px-6 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                    mx-click.prevent="@request:@inner" mx-path="/test-content">
+                    Link with .prevent (won't navigate)
+                </a>
+            </div>
+        </section>
+
+        <!-- Section 16: mx-* with .debounce modifier -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">16. mx-* with .debounce Modifier</h2>
+            <p class="mb-4 text-gray-600">Debounced input: <code>mx-input.debounce.500ms="@request:@inner"</code></p>
+
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                <input type="text" 
+                    class="w-full max-w-md px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Type to search (debounced 500ms)"
+                    mx-input.debounce.500ms="@request:@id:mx-search-results" mx-path="/test-content" />
+                <div id="mx-search-results" class="mt-4 p-4 bg-white border rounded w-full max-w-md text-center text-gray-500">
+                    Results appear here
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 17: mx-* with custom capability -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">17. mx-* with Custom Capability</h2>
+            <p class="mb-4 text-gray-600">Custom capability: <code>mx-click="Analytics.track:@inner"</code></p>
+
+            <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                <button class="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                    mx-click="Analytics.track:@inner">
+                    Track Event (see console)
+                </button>
+            </div>
+        </section>
+
+        <!-- Section 18: mx-* load event -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">18. mx-* Load Event</h2>
+            <p class="mb-4 text-gray-600">Auto-load on mount: <code>mx-load="@request:@inner"</code></p>
+
+            <div class="p-4 bg-yellow-50 rounded-md border border-yellow-200">
+                <div mx-load="@request:@inner" mx-path="/test-content">
+                    <span class="text-gray-400 animate-pulse">Loading...</span>
+                </div>
+            </div>
+        </section>
     </div>
 
 </body>

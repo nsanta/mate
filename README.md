@@ -6,19 +6,13 @@ A lightweight JavaScript library for declarative DOM interactions. `mate.js` all
 
 ### NPM
 
-You can include `mate.js` in your project by importing it into your main JavaScript file.
-
 ```javascript
 import mate from '@nsanta/mate/mate.js';
 
 mate();
-
-
 ```
 
 ### CDN
-
-You can include `mate.js` in your project by importing it from a CDN.
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"></script>
@@ -26,7 +20,194 @@ You can include `mate.js` in your project by importing it from a CDN.
 
 ## Usage
 
-`mate.js` uses a set of custom attributes to define interactions.
+`mate.js` uses custom attributes to define interactions. There are two syntaxes available:
+
+- **`mx-*` syntax** (recommended) - Event-centric shorthand with modifiers
+- **`mt-*` syntax** (legacy) - Original attribute-based syntax
+
+---
+
+## mx-* Syntax (Recommended)
+
+The `mx-*` syntax provides a concise, event-centric way to define behavior:
+
+```
+mx-{EVENT}[.modifiers]="{ACTION|CAPABILITY.method}[:{PRESENTATION}[:{TARGET}]]"
+```
+
+### Basic Usage
+
+```html
+<!-- Click → Request → Replace innerHTML -->
+<button mx-click="@request:@inner" mx-path="/api/data">
+  Load Content
+</button>
+
+<!-- Click → Request → Update element by ID -->
+<button mx-click="@request:@id:result-box" mx-path="/api/data">
+  Load into #result-box
+</button>
+
+<!-- Auto-load on page load -->
+<div mx-load="@request:@inner" mx-path="/initial-data">
+  Loading...
+</div>
+```
+
+### Request Configuration
+
+| Attribute | Description |
+|-----------|-------------|
+| `mx-path` | URL path for the request |
+| `mx-method` | HTTP method (`GET`, `POST`, etc.). Defaults to `GET` |
+| `mx-data` | JSON string for request body |
+
+### Presentation Options
+
+| Presentation | Description | Example |
+|--------------|-------------|---------|
+| `@inner` | Replace innerHTML (default) | `mx-click="@request:@inner"` |
+| `@outer` | Replace outerHTML | `mx-click="@request:@outer"` |
+| `@id:elemId` | Update element by ID | `mx-click="@request:@id:my-div"` |
+| `@class:className` | Update all elements with class | `mx-click="@request:@class:items"` |
+| `@append` | Append to innerHTML | `mx-click="@request:@append"` |
+| `@prepend` | Prepend to innerHTML | `mx-click="@request:@prepend"` |
+| `@controller:method` | Call controller method | `mx-click="@event:@controller:handle"` |
+
+### Modifiers
+
+Modifiers are appended to the event name with dots:
+
+```html
+<!-- Prevent default behavior -->
+<a href="/link" mx-click.prevent="@request:@inner" mx-path="/api/data">Click</a>
+
+<!-- Stop propagation -->
+<div mx-click.stop="@request:@inner">Click</div>
+
+<!-- Chain multiple modifiers -->
+<button mx-click.prevent.stop="@request:@inner">Click</button>
+
+<!-- Debounce input (default 250ms) -->
+<input mx-input.debounce="@request:@inner" mx-path="/search">
+
+<!-- Debounce with custom timing -->
+<input mx-input.debounce.500ms="@request:@inner" mx-path="/search">
+
+<!-- Throttle (default 250ms) -->
+<div mx-scroll.throttle="@request:@inner" mx-path="/more">Scroll</div>
+
+<!-- Throttle with custom timing -->
+<div mx-scroll.throttle.100ms="@request:@inner" mx-path="/more">Scroll</div>
+
+<!-- Only trigger once -->
+<button mx-click.once="@request:@inner">One-time action</button>
+
+<!-- Only trigger if clicking the element itself (not children) -->
+<div mx-click.self="@request:@inner">Click me only</div>
+
+<!-- Listen on window -->
+<div mx-keyup.window="@request:@inner">Press any key</div>
+
+<!-- Listen on document -->
+<div mx-keyup.document="@request:@inner">Press any key</div>
+
+<!-- Trigger when clicking outside -->
+<div mx-click.outside="@request:@inner">Click outside me</div>
+```
+
+| Modifier | Description |
+|----------|-------------|
+| `.prevent` | Calls `event.preventDefault()` |
+| `.stop` | Calls `event.stopPropagation()` |
+| `.once` | Handler runs only once |
+| `.self` | Only triggers if event target is the element itself |
+| `.debounce` | Debounces handler (250ms default) |
+| `.debounce.Nms` | Debounces with N milliseconds |
+| `.throttle` | Throttles handler (250ms default) |
+| `.throttle.Nms` | Throttles with N milliseconds |
+| `.capture` | Use capture mode |
+| `.passive` | Passive event listener |
+| `.window` | Attach listener to window |
+| `.document` | Attach listener to document |
+| `.outside` | Trigger when clicking outside element |
+
+### Custom Capabilities
+
+Register custom capabilities to extend mate.js:
+
+```javascript
+// Register a capability object with methods
+mate.registerCapability('Analytics', {
+  track(node, event, parsedEvent) {
+    console.log('Tracking:', parsedEvent);
+    return Promise.resolve({ tracked: true });
+  },
+  identify(node, event, parsedEvent) {
+    console.log('Identifying user');
+    return Promise.resolve({ identified: true });
+  }
+});
+
+// Register a simple function capability
+mate.registerCapability('Logger', (node, method, event, parsedEvent) => {
+  console.log(`[${method}]`, event);
+  return Promise.resolve({ logged: true });
+});
+```
+
+Use in HTML:
+
+```html
+<!-- Calls Analytics.track() -->
+<button mx-click="Analytics.track:@inner">
+  Track Event
+</button>
+
+<!-- Calls Logger with method "info" -->
+<button mx-click="Logger.info:@inner">
+  Log Info
+</button>
+```
+
+### Controllers
+
+For complex stateful behavior, use controllers:
+
+```html
+<div mx-controller="Counter">
+  <span>Count: <span id="count">0</span></span>
+  <button mx-click="@event:@controller:increment">+</button>
+  <button mx-click="@event:@controller:decrement">-</button>
+</div>
+
+<script>
+class Counter {
+  constructor(element) {
+    this.element = element;
+    this.count = 0;
+    this.display = element.querySelector('#count');
+  }
+  
+  increment() {
+    this.count++;
+    this.display.textContent = this.count;
+  }
+  
+  decrement() {
+    this.count--;
+    this.display.textContent = this.count;
+  }
+}
+window.Counter = Counter;
+</script>
+```
+
+---
+
+## mt-* Syntax (Legacy)
+
+The original syntax is still supported for backward compatibility.
 
 ### Triggers (`mt-on`)
 
@@ -37,9 +218,13 @@ Supported events:
 - `click`
 - `submit` (for forms)
 - `load`
+- `mouseover`
+- `mouseenter`
+- `mouseleave`
 
 Supported actions:
 - `@request`: Makes an HTTP request.
+- `@event`: Passes the event through (for controller handling).
 
 ### Request Configuration
 
@@ -59,27 +244,38 @@ Supported presenter actions:
 - `@outer`: Replaces the `outerHTML` of the target element.
 - `@id`: Updates an element by its ID. Syntax: `@id:elementId`.
 - `@class`: Updates elements by their class name. Syntax: `@class:className`.
+- `@append`: Appends content to the target.
+- `@prepend`: Prepends content to the target.
+- `@controller`: Calls a method on the element's controller.
 
-If the target is omitted for `@inner` or `@outer`, it applies to the element that triggered the event.
+---
 
 ## Examples
 
 ### Basic Click Request
 
-Makes a GET request to `test.html` when clicked and replaces the clicked element's content with the response.
-
 ```html
-<div mt-on="click:@request" mt-method="GET" mt-path="test.html">
+<!-- mx-* syntax (recommended) -->
+<button mx-click="@request:@inner" mx-path="/api/content">
   Click me to load content
-</div>
+</button>
+
+<!-- mt-* syntax (legacy) -->
+<button mt-on="click:@request" mt-path="/api/content">
+  Click me to load content
+</button>
 ```
 
 ### Update Another Element by ID
 
-Makes a request and updates the element with `id="target-div"`.
-
 ```html
-<button mt-on="click:@request" mt-method="GET" mt-path="content.html" mt-pr="@id:target-div">
+<!-- mx-* syntax (recommended) -->
+<button mx-click="@request:@id:target-div" mx-path="/api/content">
+  Load into Target
+</button>
+
+<!-- mt-* syntax (legacy) -->
+<button mt-on="click:@request" mt-path="/api/content" mt-pr="@id:target-div">
   Load into Target
 </button>
 
@@ -88,9 +284,14 @@ Makes a request and updates the element with `id="target-div"`.
 
 ### Form Submission
 
-Submits a form using POST and updates the form's content with the response.
-
 ```html
+<!-- mx-* syntax -->
+<form mx-submit="@request:@inner" mx-method="POST" mx-path="/submit-form">
+  <input type="text" name="username" />
+  <button type="submit">Submit</button>
+</form>
+
+<!-- mt-* syntax (legacy) -->
 <form mt-on="submit:@request" mt-method="POST" mt-path="/submit-form">
   <input type="text" name="username" />
   <button type="submit">Submit</button>
@@ -99,40 +300,86 @@ Submits a form using POST and updates the form's content with the response.
 
 ### Load Event
 
-Automatically loads content when the element is added to the DOM (or on page load).
-
 ```html
-<div mt-on="load:@request" mt-method="GET" mt-path="initial-data.html">
+<!-- mx-* syntax -->
+<div mx-load="@request:@inner" mx-path="/initial-data">
+  Loading...
+</div>
+
+<!-- mt-* syntax (legacy) -->
+<div mt-on="load:@request" mt-path="/initial-data">
   Loading...
 </div>
 ```
 
 ### Sending Custom Data
-Send custom JSON data with a request.
 
 ```html
+<!-- mx-* syntax -->
+<button mx-click="@request:@inner" mx-method="POST" mx-path="/api/action" mx-data='{"key": "value"}'>
+  Send Data
+</button>
+
+<!-- mt-* syntax (legacy) -->
 <button mt-on="click:@request" mt-method="POST" mt-path="/api/action" mt-data='{"key": "value"}'>
   Send Data
 </button>
 ```
 
-### Using a controller
-
-Handling events:
+### Using a Controller
 
 ```html
-<div mt-on="mouseover:@event" mt-controller="Tooltip" mt-pr="@controller:toggle">
-  Toggle Tooltip
+<!-- mx-* syntax -->
+<div mx-controller="Tooltip" mx-mouseover="@event:@controller:show" mx-mouseleave="@event:@controller:hide">
+  Hover me
+</div>
+
+<!-- mt-* syntax (legacy) -->
+<div mt-on="mouseover:@event" mt-controller="Tooltip" mt-pr="@controller:show">
+  Hover me
 </div>
 ```
 
-Handling presentation:
+---
 
-```html
-<div mt-on="click:@request" mt-method="GET" mt-path="initial-data.html" mt-controller="UpdateContent" mt-pr="@controller:update">
-  UpdateContent
-</div>
+## API Reference
+
+### `mate()`
+
+Initializes mate.js and starts observing the DOM.
+
+```javascript
+import mate from '@nsanta/mate';
+mate();
 ```
+
+### `mate.registerCapability(name, handler)`
+
+Register a custom capability.
+
+```javascript
+// Object with methods
+mate.registerCapability('MyCap', {
+  method1(node, event, parsedEvent) { ... },
+  method2(node, event, parsedEvent) { ... }
+});
+
+// Simple function
+mate.registerCapability('MyCap', (node, method, event, parsedEvent) => { ... });
+```
+
+### `mate.registerPresenter(name, handler)`
+
+Register a custom presenter.
+
+```javascript
+mate.registerPresenter('@custom', async (node, response, target, option) => {
+  const text = await response.text();
+  node.textContent = text.toUpperCase();
+});
+```
+
+---
 
 ## GitHub Pages Demo
 
@@ -141,5 +388,3 @@ A live demo of **mate.js** is hosted via GitHub Pages. You can view the examples
 The site is automatically built from the `docs/` folder using a GitHub Actions workflow.
 
 Feel free to explore the interactive examples and adapt them for your own projects.
-
-

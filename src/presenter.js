@@ -3,52 +3,20 @@ import { ATTRIBUTES } from './constants.js';
 const INNER = 'inner';
 const OUTER = 'outer';
 
-/**
- * Updates the innerHTML of the node with the response text.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element.
- * @param {Response} response - The fetch response.
- */
 async function inner(node, response) {
   node.innerHTML = await response.text();
 }
 
-/**
- * Updates the outerHTML of the node with the response text.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element.
- * @param {Response} response - The fetch response.
- */
 async function outer(node, response) {
   node.outerHTML = await response.text();
 }
 
-/**
- * Updates an element by ID with the response text.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element (unused).
- * @param {Response} response - The fetch response.
- * @param {string} id - The ID of the target element.
- * @param {string} option - 'inner' or 'outer'.
- */
 async function byId(node, response, id, option) {
   const elementNode = document.getElementById(id);
   if (option === OUTER) { outer(elementNode, response); return; }
   inner(elementNode, response);
 }
 
-/**
- * Updates elements by class name with the response text.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element (unused).
- * @param {Response} response - The fetch response.
- * @param {string} klass - The class name of the target elements.
- * @param {string} option - 'inner' or 'outer'.
- */
 async function byClass(node, response, klass, option) {
   const result = await response.text();
   Array.from(document.getElementsByClassName(klass)).forEach((element) => {
@@ -57,36 +25,14 @@ async function byClass(node, response, klass, option) {
   });
 }
 
-/**
- * Appends the response text to the node.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element.
- * @param {Response} response - The fetch response.
- */
 async function append(node, response) {
   node.insertAdjacentHTML('beforeend', await response.text());
 }
 
-/**
- * Prepends the response text to the node.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element.
- * @param {Response} response - The fetch response.
- */
 async function prepend(node, response) {
   node.insertAdjacentHTML('afterbegin', await response.text());
 }
 
-/**
- * Calls a method on the node's controller with the response.
- * 
- * @async
- * @param {HTMLElement} node - The DOM element.
- * @param {Response} response - The fetch response.
- * @param {string} func - The name of the function to call on the controller.
- */
 async function controller(node, response, func) {
   node.mtController[func](response);
 }
@@ -99,17 +45,47 @@ const PRESENTERS = {
   '@append': append,
   '@prepend': prepend,
   '@controller': controller,
+};
+
+export function registerPresenter(name, handler) {
+  PRESENTERS[name] = handler;
 }
 
-/**
- * Dispatches the response to the appropriate presenter based on attributes.
- * 
- * @param {HTMLElement} node - The DOM element.
- * @param {Response} response - The fetch response.
- */
-export function present(node, response) {
-  if (!node.hasAttribute(ATTRIBUTES.PRESENTER)) { inner(node, response); return; }
-  const present = node.getAttribute(ATTRIBUTES.PRESENTER);
-  const [action, whatever, option] = present.split(":");
-  PRESENTERS[action](node, response, whatever, option);
+export function getPresenter(name) {
+  return PRESENTERS[name];
 }
+
+export function hasPresenter(name) {
+  return name in PRESENTERS;
+}
+
+export async function present(node, response, presentation, target, option) {
+  if (presentation) {
+    const presenter = PRESENTERS[presentation];
+    if (presenter) {
+      await presenter(node, response, target, option);
+      return;
+    }
+    console.warn(`Presenter "${presentation}" not found`);
+    await inner(node, response);
+    return;
+  }
+  
+  if (!node.hasAttribute(ATTRIBUTES.PRESENTER)) { 
+    await inner(node, response); 
+    return; 
+  }
+  
+  const presentAttr = node.getAttribute(ATTRIBUTES.PRESENTER);
+  const [action, whatever, opt] = presentAttr.split(":");
+  const presenter = PRESENTERS[action];
+  
+  if (presenter) {
+    await presenter(node, response, whatever, opt);
+  } else {
+    console.warn(`Presenter "${action}" not found`);
+    await inner(node, response);
+  }
+}
+
+export default PRESENTERS;

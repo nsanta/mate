@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import mate from '../src/mate.js';
-import events from '../src/events.js';
+import { handleLegacyEvent } from '../src/events.js';
 import { ATTRIBUTES } from '../src/constants.js';
 
-// Mock dependencies
 vi.mock('../src/events.js', () => ({
     default: {
         click: vi.fn(),
         mouseover: vi.fn(),
-    }
+    },
+    handleLegacyEvent: vi.fn(),
+    attachEventHandler: vi.fn(),
 }));
 
 describe('mate', () => {
@@ -66,7 +67,7 @@ describe('mate', () => {
         mate();
         document.dispatchEvent(new Event('DOMContentLoaded'));
 
-        expect(events.click).toHaveBeenCalledWith(node, 'action', 'option');
+        expect(handleLegacyEvent).toHaveBeenCalledWith('click', node, 'action', 'option');
 
         document.body.removeChild(node);
     });
@@ -91,7 +92,6 @@ describe('mate', () => {
         const newNode = document.createElement('div');
         newNode.setAttribute(ATTRIBUTES.TRIGGER, 'mouseover:action:option');
 
-        // Simulate mutation
         const mutations = [{
             type: 'childList',
             addedNodes: [newNode],
@@ -99,6 +99,6 @@ describe('mate', () => {
 
         observerCallback(mutations);
 
-        expect(events.mouseover).toHaveBeenCalledWith(newNode, 'action', 'option');
+        expect(handleLegacyEvent).toHaveBeenCalledWith('mouseover', newNode, 'action', 'option');
     });
 });

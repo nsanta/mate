@@ -7,25 +7,19 @@
     <title>Mate.js | Declarative DOM Infusion</title>
     <style>
         :root {
-            /* Palette inspired by Yerba Mate, Gourds, and Bombillas */
-            --yerba-dark: #3A5F0B;
-            /* Deep green leaf */
-            --yerba-light: #7FA157;
-            /* Light green foam/leaf */
-            --gourd-brown: #8B5A2B;
-            /* Calabash brown */
-            --gourd-light: #D6A873;
-            /* Inner wood */
-            --bombilla-silver: #BCC6CC;
-            /* Metal straw */
-            --foam-cream: #F6F4E8;
-            /* Background cream */
-            --text-main: #2D2D2D;
-            /* Charcoal */
-            --text-light: #F6F4E8;
-            /* Light text */
-            --code-bg: #2B2B2B;
-            /* Dark code background */
+            /* Palette inspired by Chroma */
+            --bg-main: #0a0a0b;        /* Very dark, almost black */
+            --bg-card: #151518;        /* Dark gray for cards */
+            --text-main: #ededed;      /* Off white */
+            --text-light: #9ca3af;     /* Gray */
+            --accent-neon: #00E599;    /* Neon green to nod to Mate but keep Chroma vibe */
+            --accent-glow: rgba(0, 229, 153, 0.15);
+            --border-subtle: #27272a;  /* Dark border */
+            --code-bg: #000000;        /* Pure black code blocks */
+            
+            /* Typography */
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
         }
 
         * {
@@ -35,37 +29,38 @@
         }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: var(--foam-cream);
+            font-family: var(--font-main);
+            background-color: var(--bg-main);
             color: var(--text-main);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* --- Navigation --- */
         nav {
-            background-color: var(--yerba-dark);
-            color: var(--text-light);
-            padding: 1rem 2rem;
+            background-color: rgba(10, 10, 11, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 1.2rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-bottom: 4px solid var(--gourd-brown);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .logo {
             font-size: 1.5rem;
-            font-weight: bold;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            letter-spacing: -0.02em;
         }
 
         .logo span {
-            color: var(--yerba-light);
+            color: var(--accent-neon);
         }
 
         .nav-links a {
@@ -73,90 +68,109 @@
             text-decoration: none;
             margin-left: 1.5rem;
             font-weight: 500;
-            transition: color 0.3s;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
         }
 
         .nav-links a:hover {
-            color: var(--gourd-light);
+            color: var(--text-main);
         }
 
         /* --- Hero Section --- */
         header.hero {
             text-align: center;
-            padding: 5rem 2rem;
-            background: radial-gradient(circle at center, var(--yerba-light) 0%, var(--yerba-dark) 100%);
-            color: white;
+            padding: 6rem 2rem;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        header.hero::after {
-            /* Decorative "Bombilla" line */
+        /* Glowing orb behind hero */
+        header.hero::before {
             content: '';
             position: absolute;
-            bottom: -20px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            width: 8px;
-            height: 100px;
-            background: linear-gradient(90deg, #999, #FFF, #999);
-            border-radius: 4px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 0px var(--yerba-dark);
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(180deg, #FFFFFF 0%, #A1A1AA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
         }
 
         .hero p {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             max-width: 600px;
-            margin: 0 auto 2rem;
-            font-weight: 300;
+            color: var(--text-light);
+            margin: 0 auto 2.5rem;
+            font-weight: 400;
         }
 
         .btn {
             display: inline-block;
             padding: 0.8rem 2rem;
-            background-color: var(--gourd-brown);
-            color: white;
+            background-color: var(--text-main);
+            color: var(--bg-main);
             text-decoration: none;
-            border-radius: 50px;
-            font-weight: bold;
-            box-shadow: 0 4px 0 #5A3818;
-            transition: transform 0.1s, box-shadow 0.1s;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            border: 1px solid transparent;
         }
 
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #5A3818;
+        .btn:hover {
+            background-color: transparent;
+            color: var(--text-main);
+            border-color: var(--border-subtle);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
         /* --- Main Content --- */
         main {
             max-width: 900px;
             margin: 0 auto;
-            padding: 3rem 2rem;
+            padding: 2rem;
         }
 
         section {
-            margin-bottom: 4rem;
+            margin-bottom: 6rem;
         }
 
         h2 {
-            color: var(--yerba-dark);
-            font-size: 2.2rem;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             margin-bottom: 1.5rem;
-            border-bottom: 2px solid var(--yerba-light);
-            padding-bottom: 0.5rem;
-            display: inline-block;
+            color: var(--text-main);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
         }
 
         p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
             font-size: 1.1rem;
+            color: var(--text-light);
         }
 
         /* --- Code Blocks --- */
@@ -166,98 +180,167 @@
             padding: 1.5rem;
             border-radius: 12px;
             overflow-x: auto;
-            border-left: 6px solid var(--yerba-light);
+            border: 1px solid var(--border-subtle);
             margin: 1.5rem 0;
-            font-family: 'Consolas', 'Monaco', monospace;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
         code {
-            font-family: 'Consolas', 'Monaco', monospace;
-            color: #D6A873;
+            font-family: var(--font-mono);
+            color: var(--accent-neon);
+            font-size: 0.9em;
+        }
+
+        /* Inline code */
+        p code {
+            background-color: var(--bg-card);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+        
+        /* Remove the background from h3 inside card for normal text */
+        .card code {
+            background-color: transparent;
+            padding: 0;
+            border: none;
+            color: var(--accent-neon);
         }
 
         /* --- Feature Cards --- */
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
         .card {
-            background: white;
-            border-radius: 16px;
+            background: var(--bg-card);
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 4px 15px rgba(58, 95, 11, 0.1);
-            border-top: 5px solid var(--gourd-brown);
-            transition: transform 0.2s;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-2px);
+            border-color: var(--accent-neon);
+            box-shadow: 0 8px 30px rgba(0, 229, 153, 0.1);
         }
 
         .card h3 {
-            color: var(--gourd-brown);
-            margin-bottom: 1rem;
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .card code {
-            background-color: #EEE;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            color: var(--yerba-dark);
+        .card h3::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-neon);
+            box-shadow: 0 0 10px var(--accent-neon);
         }
 
-        /* --- Footer --- */
-        footer {
-            background-color: var(--gourd-brown);
-            color: var(--foam-cream);
-            text-align: center;
-            padding: 2rem;
-            margin-top: 4rem;
-            border-top: 8px solid var(--bombilla-silver);
-        }
-
-        footer a {
-            color: var(--yerba-light);
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
+        .card p {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
         }
 
         /* --- Visual Decor --- */
         .highlight {
-            color: var(--yerba-dark);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Sleek Container styling replacing "Gourd" */
+        .gourd-container {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            transition: border-color 0.3s;
+        }
+        
+        .gourd-container:hover {
+            border-color: #3f3f46;
+        }
+
+        .gourd-container h3 {
+            margin-top: 0;
+        }
+
+        ul.styled-list {
+            list-style: none;
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        ul.styled-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        ul.styled-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-neon);
             font-weight: bold;
         }
 
-        /* Rounded "Gourd" styling for specific containers */
-        .gourd-container {
-            background-color: #FFF;
-            border: 1px solid #DDD;
-            border-radius: 30px 30px 50% 50% / 30px 30px 60px 60px;
-            padding: 3rem;
+        ul.styled-list strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* --- Footer --- */
+        footer {
             text-align: center;
-            margin-top: 2rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        footer a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--accent-neon);
         }
 
         @media (max-width: 600px) {
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 2.8rem;
             }
 
             nav {
                 flex-direction: column;
                 gap: 1rem;
+                padding: 1rem;
             }
 
             .nav-links a {
-                margin: 0 0.5rem;
+                margin: 0 0.8rem;
             }
         }
     </style>
@@ -268,121 +351,134 @@
     <nav>
         <div class="logo">🧉 Mate<span>.js</span></div>
         <div class="nav-links">
-            <a href="#brewing">Preparation</a>
-            <a href="#ingredients">Ingredients</a>
-            <a href="#tasting">Tasting Notes</a>
+            <a href="#intro">Intro</a>
+            <a href="#installation">Installation</a>
+            <a href="#syntax">Syntax</a>
+            <a href="#examples">Examples</a>
             <a href="https://github.com/nsanta/mate" target="_blank">GitHub</a>
         </div>
     </nav>
 
     <header class="hero">
-        <h1>Brewing the DOM</h1>
-        <p>A lightweight, HTMX-inspired library for declarative interactions. Steep your HTML in functionality without
-            the bitterness of complex JavaScript.</p>
-        <a href="https://github.com/nsanta/mate" class="btn">Get the Recipe</a>
+        <h1>Declarative DOM Interactions</h1>
+        <p>A lightweight JavaScript library to define behavior directly in your HTML using attributes. Handle events, make requests, and update the DOM without writing custom JavaScript.</p>
+        <a href="https://github.com/nsanta/mate" class="btn">View on GitHub</a>
     </header>
 
     <main>
         <section id="intro">
             <h2>The Perfect Blend</h2>
-            <p>Just like a good mate passed around a circle, <span class="highlight">Mate.js</span> is built for sharing
-                and simplicity. It allows you to define behavior directly in your HTML using attributes, making it easy
-                to handle events, make requests, and update the DOM without writing custom JavaScript for every sip.</p>
+            <p><span class="highlight">Mate.js</span> allows you to quickly and expressively build dynamic frontends. It introduces custom attributes to map events directly to DOM mutations and requests, keeping your logic right in your markup.</p>
+            <p>There are two syntaxes available:</p>
+            <ul class="styled-list">
+                <li><strong><code>mx-*</code> syntax (recommended):</strong> An event-centric shorthand with powerful modifiers.</li>
+                <li><strong><code>mt-*</code> syntax (legacy):</strong> The original attribute-based syntax (still supported for backward compatibility).</li>
+            </ul>
         </section>
 
-        <section id="brewing">
-            <h2>Preparation (Installation)</h2>
-            <p>To start brewing, you have two options:</p>
+        <section id="installation">
+            <h2>Installation</h2>
+            
+            <h3>Option 1: NPM (Recommended)</h3>
+            <pre>
+import mate from '@nsanta/mate/mate.js';
 
-            <h3 style="color: var(--gourd-brown); margin-top: 2rem; margin-bottom: 1rem;">Option 1: CDN (Quick Start)
-            </h3>
-            <p>Include Mate.js directly from a CDN in your HTML:</p>
+// Initialize the library
+mate();</pre>
+
+            <h3>Option 2: CDN</h3>
+            <p>Include Mate.js directly in your HTML:</p>
             <pre>
 &lt;!-- Add this to your HTML head or before closing body tag --&gt;
 &lt;script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"&gt;&lt;/script&gt;</pre>
-
-            <h3 style="color: var(--gourd-brown); margin-top: 2rem; margin-bottom: 1rem;">Option 2: ES Module Import
-            </h3>
-            <p>Import the library into your main JavaScript file:</p>
-            <pre>
-import mate from './path/to/mate.js';
-
-// Pour the water
-mate();</pre>
         </section>
 
-        <section id="ingredients">
-            <h2>Ingredients (API)</h2>
-            <p>Mate.js uses a special blend of custom attributes to define the flavor profile of your application.</p>
+        <section id="syntax">
+            <h2>The `mx-*` Syntax</h2>
+            <p>The recommended <code>mx-*</code> syntax provides a concise, event-centric way to define behavior.</p>
+            <pre>mx-{EVENT}[.modifiers]="{ACTION|CAPABILITY.method}[:{PRESENTATION}[:{TARGET}]]"</pre>
 
-            <div class="features">
+            <div class="features" style="margin-top: 2rem;">
                 <div class="card">
-                    <h3>mt-on</h3>
-                    <p><strong>The Spark.</strong> Defines the event that triggers an action (like heating the water).
-                    </p>
-                    <p>Syntax: <code>mt-on="event:action"</code></p>
-                    <p><em>Examples: click, submit, load</em></p>
+                    <h3>Events & Actions</h3>
+                    <p>Bind to any standard DOM event using <code>mx-{event}</code>.</p>
+                    <p><code>mx-click="@request:@inner"</code> triggers an HTTP request on click and replaces the element's inner HTML.</p>
                 </div>
 
                 <div class="card">
-                    <h3>mt-method & mt-path</h3>
-                    <p><strong>The Infusion.</strong> Configures the HTTP request method and the destination path.</p>
-                    <p><code>mt-method="POST"</code></p>
-                    <p><code>mt-path="/api/brew"</code></p>
+                    <h3>Modifiers</h3>
+                    <p>Chain modifiers directly to the event name to alter behavior seamlessly.</p>
+                    <p><code>mx-input.debounce.500ms="..."</code> debounces input. <code>.prevent.stop</code> controls event propagation.</p>
                 </div>
 
                 <div class="card">
-                    <h3>mt-pr</h3>
-                    <p><strong>The Serving.</strong> The "Presenter" attribute defines how the response is poured into
-                        the DOM.</p>
-                    <p>Syntax: <code>mt-pr="action:target"</code></p>
-                    <p><em>Options: @inner, @outer, @id, @class</em></p>
+                    <h3>Presenters & Targets</h3>
+                    <p>Decide exactly where the response goes in the DOM.</p>
+                    <p>Use <code>:@id:result</code> or <code>:@class:items</code> to target elements, or <code>:@prepend</code> / <code>:@append</code> to insert content.</p>
                 </div>
             </div>
         </section>
 
-        <section id="tasting">
-            <h2>Tasting Notes (Examples)</h2>
+        <section id="examples">
+            <h2>Examples & Patterns</h2>
 
             <div class="gourd-container">
-                <h3>The Basic Pour</h3>
-                <p>Make a request when clicked and refill the content.</p>
-                <div style="text-align: left;">
+                <h3>Basic Click Request</h3>
+                <p>Click a button to make a request and update the DOM automatically.</p>
+                <div>
                     <pre>
-&lt;div mt-on="click:@request" 
-     mt-method="GET" 
-     mt-path="refill.html"&gt;
-  Drink Mate
-&lt;/div&gt;</pre>
+&lt;button mx-click="@request:@inner" mx-path="/api/data"&gt;
+  Load Content
+&lt;/button&gt;</pre>
                 </div>
             </div>
 
-            <br>
-
-            <div class="gourd-container" style="border-top: 5px solid var(--yerba-light);">
-                <h3>Sharing the Gourd (Targeting IDs)</h3>
-                <p>Click one button to update a different element on the page.</p>
-                <div style="text-align: left;">
+            <div class="gourd-container">
+                <h3>Update Element by ID</h3>
+                <p>Click one element to update an entirely different element on the page.</p>
+                <div>
                     <pre>
-&lt;button mt-on="click:@request" 
-        mt-method="GET" 
-        mt-path="water.html" 
-        mt-pr="@id:thermos"&gt;
-  Refill Thermos
+&lt;button mx-click="@request:@id:result-box" mx-path="/api/data"&gt;
+  Load into Output Box
 &lt;/button&gt;
 
-&lt;div id="thermos"&gt;Empty...&lt;/div&gt;</pre>
+&lt;div id="result-box"&gt;Content will appear here&lt;/div&gt;</pre>
+                </div>
+            </div>
+
+            <div class="gourd-container">
+                <h3>Modifiers: Debouncing Search</h3>
+                <p>Wait until the user stops typing to fire the request.</p>
+                <div>
+                    <pre>
+&lt;input type="text" 
+       placeholder="Search..."
+       mx-input.debounce.500ms="@request:@inner" 
+       mx-path="/api/search" /&gt;</pre>
+                </div>
+            </div>
+
+            <div class="gourd-container">
+                <h3>Controllers for Complex State</h3>
+                <p>For custom logic, map events directly to custom controller methods.</p>
+                <div>
+                    <pre>
+&lt;div mx-controller="Counter"&gt;
+  &lt;span&gt;Count: &lt;span id="count"&gt;0&lt;/span&gt;&lt;/span&gt;
+  &lt;button mx-click="@event:@controller:increment"&gt;+&lt;/button&gt;
+  &lt;button mx-click="@event:@controller:decrement"&gt;-&lt;/button&gt;
+&lt;/div&gt;</pre>
                 </div>
             </div>
         </section>
 
         <section>
             <h2>Why Mate.js?</h2>
-            <ul style="list-style: circle; margin-left: 2rem; font-size: 1.1rem; color: var(--gourd-brown);">
-                <li><strong>Organic:</strong> No build steps required.</li>
-                <li><strong>Lightweight:</strong> Does one thing well.</li>
-                <li><strong>Social:</strong> Works great with existing server-side templates.</li>
-                <li><strong>Declarative:</strong> Read your logic right in the markup.</li>
+            <ul class="styled-list">
+                <li><strong>Lightweight:</strong> Tiny footprint, bringing declarative logic without a heavy framework runtime.</li>
+                <li><strong>Extensible:</strong> Easily register custom Capabilities and Presenters.</li>
+                <li><strong>Progressive Enhancement:</strong> Perfect for augmenting server-rendered HTML (HTMX-style).</li>
+                <li><strong>Declarative:</strong> Keep your interactions readable directly within the markup layout.</li>
             </ul>
         </section>
 
