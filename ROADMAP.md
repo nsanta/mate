@@ -100,14 +100,14 @@ Allowing developers to extend the library with custom logic.
 
 ---
 
-## Phase 5: Advanced Connectivity (Planned)
+## Phase 5: Advanced Connectivity ✅ Complete
 
 Adding support for real-time and streaming data.
 
 ### Actions
-- [ ] `@stream`: Support for HTTP Streams for real-time updates.
-- [ ] `@ws`: Support for Web Sockets for bidirectional communication.
-- [ ] `@sse`: Support for Server-Sent Events.
+- [x] `@stream`: Support for HTTP Streams for real-time updates.
+- [x] `@ws`: Support for Web Sockets for bidirectional communication.
+- [x] `@sse`: Support for Server-Sent Events.
 
 ---
 

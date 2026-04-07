@@ -74,6 +74,20 @@ mx-{EVENT}[.modifiers]="{ACTION|CAPABILITY.method}[:{PRESENTATION}[:{TARGET}]]"
 | `@prepend` | Prepend to innerHTML | `mx-click="@request:@prepend"` |
 | `@controller:method` | Call controller method | `mx-click="@event:@controller:handle"` |
 
+### Available Actions
+
+| Action | Description | Protocol |
+|--------|-------------|----------|
+| `@request` | Makes an HTTP request (GET, POST, etc.) | HTTP |
+| `@event` | Passes event through to controller | N/A |
+| `@stream` | Streams HTTP responses with real-time updates | HTTP |
+| `@ws` | Establishes WebSocket connection for bidirectional communication | WebSocket |
+| `@sse` | Establishes Server-Sent Events connection for real-time updates | SSE |
+
+All actions support the same presentation options (`@inner`, `@append`, `@prepend`, `@id`, etc.).
+
+**Note:** `@stream`, `@ws`, and `@sse` require the `mx-path` attribute to specify the endpoint URL.
+
 ### Modifiers
 
 Modifiers are appended to the event name with dots:
@@ -202,6 +216,104 @@ class Counter {
 window.Counter = Counter;
 </script>
 ```
+ 
+### Advanced Connectivity (`@stream`, `@ws`, `@sse`)
+
+mate.js supports real-time data streaming and bidirectional communication through three special actions:
+
+| Action | Description | Protocol |
+|--------|-------------|----------|
+| `@stream` | HTTP streaming responses with real-time updates | HTTP |
+| `@ws` | WebSocket for bidirectional communication | WebSocket |
+| `@sse` | Server-Sent Events for unidirectional updates | SSE |
+
+#### @stream - HTTP Streams
+
+Streams HTTP responses incrementally, updating the DOM as each chunk arrives. Perfect for streaming logs, chat feeds, or real-time data.
+
+```html
+<!-- Basic stream -->
+<button mx-click="@stream" mx-path="/stream">
+  Start Stream
+</button>
+
+<!-- Append each chunk -->
+<button mx-click="@stream:@append" mx-path="/stream">
+  Stream and Append
+</button>
+
+<!-- Update another element by ID -->
+<button mx-click="@stream:@id:log" mx-path="/stream">
+  Stream to Log
+</button>
+
+<div id="stream-output">Waiting for stream...</div>
+```
+
+The server should send newline-delimited text:
+```
+Stream message 1
+Stream message 2
+Stream message 3
+```
+
+To stop a stream:
+```javascript
+const node = document.querySelector('[mx-click="@stream"]');
+if (node && node._streamAbortController) {
+  node._streamAbortController.abort();
+}
+```
+
+#### @ws - WebSocket
+
+Establishes a WebSocket connection for bidirectional communication with automatic reconnection using exponential backoff.
+
+```html
+<!-- Connect WebSocket -->
+<button mx-click="@ws" mx-path="ws://localhost:3001/ws">
+  Connect
+</button>
+
+<div id="ws-output">Waiting for WebSocket...</div>
+```
+
+To send messages to the WebSocket:
+```javascript
+const node = document.querySelector('[mx-click="@ws"]');
+if (node && node._wsClient) {
+  node._wsClient.send({ type: 'client', message: 'Hello!' });
+}
+```
+
+To disconnect:
+```javascript
+const node = document.querySelector('[mx-click="@ws"]');
+if (node && node._wsClient) {
+  node._wsClient.close();
+}
+```
+
+#### @sse - Server-Sent Events
+
+Establishes a Server-Sent Events connection for unidirectional real-time updates from the server.
+
+```html
+<!-- Connect to SSE -->
+<button mx-click="@sse" mx-path="/sse">
+  Connect SSE
+</button>
+
+<div id="sse-output">Waiting for SSE connection...</div>
+```
+
+To stop the SSE connection:
+```javascript
+const node = document.querySelector('[mx-click="@sse"]');
+if (node && node._sseClient) {
+  node._sseClient.stop();
+}
+```
 
 ---
 
@@ -225,6 +337,9 @@ Supported events:
 Supported actions:
 - `@request`: Makes an HTTP request.
 - `@event`: Passes the event through (for controller handling).
+- `@stream`: Streams HTTP responses with real-time updates.
+- `@ws`: Establishes a WebSocket connection.
+- `@sse`: Establishes a Server-Sent Events connection.
 
 ### Request Configuration
 
@@ -338,6 +453,54 @@ Supported presenter actions:
 <div mt-on="mouseover:@event" mt-controller="Tooltip" mt-pr="@controller:show">
   Hover me
 </div>
+```
+ 
+### HTTP Stream for Real-Time Updates
+
+```html
+<!-- mx-* syntax -->
+<button mx-click="@stream" mx-path="/stream">
+  Start Stream
+</button>
+<div id="stream-output">Waiting...</div>
+
+<!-- Stream and append each chunk -->
+<button mx-click="@stream:@append" mx-path="/stream">
+  Stream to Log
+</button>
+<div id="log">Messages will appear here</div>
+```
+
+### WebSocket Connection
+
+```html
+<!-- mx-* syntax -->
+<button mx-click="@ws" mx-path="ws://localhost:3001/ws">
+  Connect WebSocket
+</button>
+<div id="ws-output">Waiting for connection...</div>
+
+<!-- Send message from JavaScript -->
+<button onclick="sendWSMessage()">Send Hello</button>
+
+<script>
+  function sendWSMessage() {
+    const node = document.querySelector('[mx-click="@ws"]');
+    if (node && node._wsClient) {
+      node._wsClient.send({ message: 'Hello from client!' });
+    }
+  }
+</script>
+```
+
+### Server-Sent Events
+
+```html
+<!-- mx-* syntax -->
+<button mx-click="@sse" mx-path="/sse">
+  Connect SSE
+</button>
+<div id="sse-output">Waiting for connection...</div>
 ```
 
 ---

@@ -86,4 +86,130 @@ describe('actions', () => {
             expect(result).toBe(event);
         });
     });
+
+    describe('@stream', () => {
+        const stream = actions['@stream'];
+
+        beforeEach(() => {
+            global.fetch = vi.fn();
+        });
+
+        it('should handle streaming responses', async () => {
+            const node = document.createElement('div');
+            node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/stream');
+
+            const mockReader = {
+                read: vi.fn()
+                    .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('line1\n') })
+                    .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('line2\n') })
+                    .mockResolvedValueOnce({ done: true, value: null }),
+            };
+
+            const mockResponse = {
+                ok: true,
+                body: { getReader: () => mockReader },
+            };
+
+            global.fetch.mockResolvedValue(mockResponse);
+
+            const result = await stream(node, { presentation: '@inner' }, {});
+
+            expect(global.fetch).toHaveBeenCalledWith('/stream', {
+                method: 'GET',
+                signal: expect.any(AbortSignal),
+            });
+            expect(result).toBeDefined();
+            expect(result.chunks).toEqual(['line1', 'line2']);
+        });
+
+        it('should require mx-path attribute', async () => {
+            const node = document.createElement('div');
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const result = await stream(node, {}, {});
+
+            expect(consoleSpy).toHaveBeenCalledWith('@stream requires mx-path attribute');
+            expect(result).toBeNull();
+
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('@ws', () => {
+        const ws = actions['@ws'];
+
+        beforeEach(() => {
+            global.WebSocket = vi.fn(function MockWebSocket(url) {
+                this.url = url;
+                this.send = vi.fn();
+                this.close = vi.fn();
+                this.binaryType = 'arraybuffer';
+                this.readyState = WebSocket.OPEN;
+                setTimeout(() => {
+                    if (this.onopen) this.onopen();
+                }, 0);
+            });
+        });
+
+        it('should establish WebSocket connection', async () => {
+            const node = document.createElement('div');
+            node.setAttribute(ATTRIBUTES.REQUEST_PATH, 'ws://localhost:3001/ws');
+
+            const result = await ws(node, { presentation: '@inner' }, {});
+
+            expect(global.WebSocket).toHaveBeenCalledWith('ws://localhost:3001/ws');
+            expect(result).toBeDefined();
+            expect(node._wsClient).toBeDefined();
+        });
+
+        it('should require mx-path attribute', async () => {
+            const node = document.createElement('div');
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const result = await ws(node, {}, {});
+
+            expect(consoleSpy).toHaveBeenCalledWith('@ws requires mx-path attribute');
+            expect(result).toBeNull();
+
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('@sse', () => {
+        const sse = actions['@sse'];
+
+        beforeEach(() => {
+            global.EventSource = vi.fn(function MockEventSource(url) {
+                this.url = url;
+                this.close = vi.fn();
+                this.readyState = EventSource.OPEN;
+                setTimeout(() => {
+                    if (this.onopen) this.onopen();
+                }, 0);
+            });
+        });
+
+        it('should establish SSE connection', async () => {
+            const node = document.createElement('div');
+            node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/sse');
+
+            const result = await sse(node, { presentation: '@inner' }, {});
+
+            expect(global.EventSource).toHaveBeenCalledWith('/sse');
+            expect(result).toBeDefined();
+            expect(node._sseClient).toBeDefined();
+        });
+
+        it('should require mx-path attribute', async () => {
+            const node = document.createElement('div');
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const result = await sse(node, {}, {});
+
+            expect(consoleSpy).toHaveBeenCalledWith('@sse requires mx-path attribute');
+            expect(result).toBeNull();
+
+            consoleSpy.mockRestore();
+        });
+    });
 });
