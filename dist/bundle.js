@@ -10,7 +10,8 @@ const ATTRIBUTES = {
 	MX_CONTROLLER: "mx-controller",
 	MX_METHOD: "mx-method",
 	MX_PATH: "mx-path",
-	MX_DATA: "mx-data"
+	MX_DATA: "mx-data",
+	MX_HEADER_META: "mx-header"
 };
 const MODIFIERS = {
 	PREVENT: "prevent",
@@ -112,6 +113,21 @@ async function present(node, response, presentation, target, option) {
 */
 const DEFAULT_OPTIONS = { method: "GET" };
 /**
+* Collects headers from meta tags with mx-header attribute.
+* Meta tags should be formatted as: <meta mx-header name="Header-Name" content="header-value" />
+*
+* @returns {Object} Headers object with header names as keys
+*/
+function collectMetaHeaders() {
+	const headers = {};
+	document.querySelectorAll(`meta[${ATTRIBUTES.MX_HEADER_META}]`).forEach((meta) => {
+		const name = meta.getAttribute("name");
+		const content = meta.getAttribute("content");
+		if (name && content) headers[name] = content;
+	});
+	return headers;
+}
+/**
 * Performs an HTTP request based on element's attributes.
 *
 * @async
@@ -123,7 +139,7 @@ const DEFAULT_OPTIONS = { method: "GET" };
 async function request(node, options, event) {
 	const requestOptions = {
 		method: node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || DEFAULT_OPTIONS.method,
-		headers: {}
+		headers: collectMetaHeaders()
 	};
 	if (!["GET", "HEAD"].includes(requestOptions.method)) if (node.tagName === "FORM") {
 		const formData = new FormData(node);
@@ -190,6 +206,7 @@ async function stream(node, options, event) {
 	try {
 		const response = await fetch(url, {
 			method,
+			headers: collectMetaHeaders(),
 			signal: abortController.signal
 		});
 		if (!response.ok || !response.body) throw new Error(`Stream failed: ${response.status}`);

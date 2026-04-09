@@ -62,6 +62,24 @@ mx-{EVENT}[.modifiers]="{ACTION|CAPABILITY.method}[:{PRESENTATION}[:{TARGET}]]"
 | `mx-method` | HTTP method (`GET`, `POST`, etc.). Defaults to `GET` |
 | `mx-data` | JSON string for request body |
 
+### Meta Tag Headers
+
+You can configure HTTP headers using meta tags. This is useful for setting authentication tokens, custom headers, or other HTTP headers that should apply to all requests.
+
+Add meta tags in your HTML `<head>`:
+
+```html
+<head>
+  <meta mx-header name="Authorization" content="Bearer: TOKEN" />
+  <meta mx-header name="X-API-Key" content="your-api-key" />
+  <meta mx-header name="X-Custom-Header" content="custom-value" />
+</head>
+```
+
+These headers will be automatically included in all `@request` and `@stream` actions.
+
+**Note:** WebSocket (`@ws`) and Server-Sent Events (`@sse`) use different connection protocols and do not support custom headers through the standard browser APIs.
+
 ### Presentation Options
 
 | Presentation | Description | Example |
@@ -411,6 +429,31 @@ Supported presenter actions:
   <input type="text" name="username" />
   <button type="submit">Submit</button>
 </form>
+```
+
+### Authentication with Meta Headers
+
+Configure authentication headers once in the `<head>` and they'll apply to all requests:
+
+```html
+<head>
+  <meta mx-header name="Authorization" content="Bearer: eyJhbGciOiJIUzI1NiIs..." />
+</head>
+
+<body>
+  <!-- All these requests will include the Authorization header -->
+  <button mx-click="@request:@inner" mx-path="/api/profile">
+    Load Profile
+  </button>
+
+  <div mx-load="@request:@inner" mx-path="/api/dashboard">
+    Loading dashboard...
+  </div>
+
+  <button mx-click="@stream:@append" mx-path="/api/events">
+    Stream Events
+  </button>
+</body>
 ```
 
 ### Load Event

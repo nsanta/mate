@@ -75,6 +75,63 @@ describe('actions', () => {
                 body: expect.any(global.URLSearchParams),
             }));
         });
+
+        it('should include headers from meta tags', async () => {
+            const meta = document.createElement('meta');
+            meta.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta.setAttribute('name', 'Authorization');
+            meta.setAttribute('content', 'Bearer: TOKEN');
+            document.head.appendChild(meta);
+
+            try {
+                const node = document.createElement('div');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+
+                await request(node, {}, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer: TOKEN',
+                    },
+                });
+            } finally {
+                document.head.removeChild(meta);
+            }
+        });
+
+        it('should include multiple headers from meta tags', async () => {
+            const meta1 = document.createElement('meta');
+            meta1.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta1.setAttribute('name', 'Authorization');
+            meta1.setAttribute('content', 'Bearer: TOKEN');
+
+            const meta2 = document.createElement('meta');
+            meta2.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta2.setAttribute('name', 'X-Custom-Header');
+            meta2.setAttribute('content', 'custom-value');
+
+            document.head.appendChild(meta1);
+            document.head.appendChild(meta2);
+
+            try {
+                const node = document.createElement('div');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+
+                await request(node, {}, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer: TOKEN',
+                        'X-Custom-Header': 'custom-value',
+                    },
+                });
+            } finally {
+                document.head.removeChild(meta1);
+                document.head.removeChild(meta2);
+            }
+        });
     });
 
     describe('@event', () => {
@@ -116,6 +173,7 @@ describe('actions', () => {
 
             expect(global.fetch).toHaveBeenCalledWith('/stream', {
                 method: 'GET',
+                headers: {},
                 signal: expect.any(AbortSignal),
             });
             expect(result).toBeDefined();
@@ -132,6 +190,44 @@ describe('actions', () => {
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();
+        });
+
+        it('should include headers from meta tags in stream requests', async () => {
+            const meta = document.createElement('meta');
+            meta.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta.setAttribute('name', 'Authorization');
+            meta.setAttribute('content', 'Bearer: STREAM_TOKEN');
+            document.head.appendChild(meta);
+
+            try {
+                const node = document.createElement('div');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/stream');
+
+                const mockReader = {
+                    read: vi.fn()
+                        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('line1\n') })
+                        .mockResolvedValueOnce({ done: true, value: null }),
+                };
+
+                const mockResponse = {
+                    ok: true,
+                    body: { getReader: () => mockReader },
+                };
+
+                global.fetch.mockResolvedValue(mockResponse);
+
+                await stream(node, { presentation: '@inner' }, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/stream', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer: STREAM_TOKEN',
+                    },
+                    signal: expect.any(AbortSignal),
+                });
+            } finally {
+                document.head.removeChild(meta);
+            }
         });
     });
 

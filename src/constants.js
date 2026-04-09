@@ -10,6 +10,7 @@ export const ATTRIBUTES = {
     MX_METHOD: "mx-method",
     MX_PATH: "mx-path",
     MX_DATA: "mx-data",
+    MX_HEADER_META: "mx-header",
 };
 
 export const MODIFIERS = {
