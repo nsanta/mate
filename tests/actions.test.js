@@ -186,7 +186,7 @@ describe('actions', () => {
 
             const result = await stream(node, {}, {});
 
-            expect(consoleSpy).toHaveBeenCalledWith('@stream requires mt-path attribute');
+            expect(consoleSpy).toHaveBeenCalledWith('@stream requires mx-path attribute');
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();
@@ -264,7 +264,7 @@ describe('actions', () => {
 
             const result = await ws(node, {}, {});
 
-            expect(consoleSpy).toHaveBeenCalledWith('@ws requires mt-path attribute');
+            expect(consoleSpy).toHaveBeenCalledWith('@ws requires mx-path attribute');
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();
@@ -302,7 +302,7 @@ describe('actions', () => {
 
             const result = await sse(node, {}, {});
 
-            expect(consoleSpy).toHaveBeenCalledWith('@sse requires mt-path attribute');
+            expect(consoleSpy).toHaveBeenCalledWith('@sse requires mx-path attribute');
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();

@@ -57,7 +57,7 @@ describe('mate', () => {
     it('should attach event handlers to existing nodes using mx- syntax', () => {
         const node = document.createElement('div');
         node.setAttribute('mx-click', '@request:@inner');
-        node.setAttribute('mt-path', '/test');
+        node.setAttribute('mx-path', '/test');
         document.body.appendChild(node);
 
         mate();
@@ -76,7 +76,7 @@ describe('mate', () => {
         mate();
         document.dispatchEvent(new Event('DOMContentLoaded'));
 
-        expect(node.mtController).toBeInstanceOf(window.TestController);
+        expect(node.mxController).toBeInstanceOf(window.TestController);
 
         document.body.removeChild(node);
     });

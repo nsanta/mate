@@ -108,7 +108,7 @@ async function stream(node, options, event) {
   const method = node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || 'GET';
 
   if (!url) {
-    console.error('@stream requires mt-path attribute');
+    console.error('@stream requires mx-path attribute');
     return null;
   }
 
@@ -343,7 +343,7 @@ async function ws(node, options, event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 
   if (!url) {
-    console.error('@ws requires mt-path attribute');
+    console.error('@ws requires mx-path attribute');
     return null;
   }
 
@@ -433,7 +433,7 @@ async function sse(node, options, event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 
   if (!url) {
-    console.error('@sse requires mt-path attribute');
+    console.error('@sse requires mx-path attribute');
     return null;
   }
 

@@ -10,7 +10,7 @@ function initController(node, attrName) {
   const controller = node.getAttribute(attrName);
   if (controller && window[controller]) {
     const controllerInstance = new window[controller](node);
-    node.mtController = controllerInstance;
+    node.mxController = controllerInstance;
   }
 }
 

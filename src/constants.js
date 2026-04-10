@@ -1,9 +1,9 @@
 export const ATTRIBUTES = {
-    CONTROLLER: "mt-controller",
-    REQUEST_METHOD: "mt-method",
-    REQUEST_PATH: "mt-path",
-    REQUEST_DATA: "mt-data",
-    HEADER_META: "mt-header",
+    CONTROLLER: "mx-controller",
+    REQUEST_METHOD: "mx-method",
+    REQUEST_PATH: "mx-path",
+    REQUEST_DATA: "mx-data",
+    HEADER_META: "mx-header",
     EVENT_PREFIX: "mx-",
 };
 
