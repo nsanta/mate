@@ -56,7 +56,12 @@ export async function executeActionOrCapability(parsedEvent, node, event) {
   }
 
   if (response) {
-    await present(node, response, presentation, target, presentationOption);
+    // Normalize response to ensure it has a .text() method for presenters
+    const normalizedResponse = (response instanceof Response || (typeof response === 'object' && response !== null && 'text' in response))
+      ? response
+      : { text: () => Promise.resolve(String(response)) };
+
+    await present(node, normalizedResponse, presentation, target, presentationOption);
   }
 
   return response;

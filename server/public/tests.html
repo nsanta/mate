@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mate.js Visual Tests</title>
+    <title>Mate.js Modern Visual Tests</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/controllers.js" type="module"></script>
     <script src="/dist/bundle.js" type="module"></script>
@@ -16,33 +16,32 @@
 
         <header class="text-center border-b pb-8">
             <h1 class="text-4xl font-bold text-indigo-600 mb-2">Mate.js Visual Tests</h1>
-            <p class="text-gray-600">Interactive test suite for verifying library functionality.</p>
+            <p class="text-gray-600 font-medium">Standardized Modern Syntax & Modifiers</p>
+            <p class="text-sm text-gray-400 mt-2">Using <code>mx-*</code> for events and <code>mt-*</code> for configuration.</p>
         </header>
 
-        <!-- Section 1: Click Request -->
+        <!-- Section 1: Basic Event & Request -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">1. Click Request (@inner)</h2>
-            <p class="mb-4 text-gray-600">Clicking the button should replace its content with a success message from the
-                server.</p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">1. Basic Event & Request (@inner)</h2>
+            <p class="mb-4 text-gray-600">Standard <code>mx-click</code> with <code>@inner</code> presenter.</p>
 
-            <div
-                class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+            <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
                 <button class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-                    mt-on="click:@request" mt-method="GET" mt-path="/test-content">
+                    mx-click="@request:@inner" mt-method="GET" mt-path="/test-content">
                     Click me to load content
                 </button>
             </div>
         </section>
 
-        <!-- Section 2: Presenters -->
+        <!-- Section 2: Targeted Updates (@id) -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">2. Presenters (@id)</h2>
-            <p class="mb-4 text-gray-600">Clicking the button should update the target element below.</p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">2. Targeted Updates (@id)</h2>
+            <p class="mb-4 text-gray-600">Using <code>@id:target-id</code> to update a specific element.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md">
                     <button class="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
-                        mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@id:target-div">
+                        mx-click="@request:@id:target-div" mt-method="GET" mt-path="/test-content">
                         Update Target
                     </button>
                 </div>
@@ -56,12 +55,12 @@
 
         <!-- Section 3: Form Submission -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">3. Form Submission</h2>
-            <p class="mb-4 text-gray-600">Submit the form to see the server response replace the form.</p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">3. Form Submission (POST)</h2>
+            <p class="mb-4 text-gray-600">Standard form submission using <code>mx-submit</code>.</p>
 
             <div class="p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <form class="flex flex-col space-y-4 max-w-md mx-auto" mt-on="submit:@request" mt-method="POST"
-                    mt-path="/submit-form">
+                <form class="flex flex-col space-y-4 max-w-md mx-auto" 
+                    mx-submit="@request:@inner" mt-method="POST" mt-path="/submit-form">
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
@@ -78,227 +77,141 @@
             </div>
         </section>
 
-        <!-- Section 4: Load Event -->
+        <!-- Section 4: Immediate Load Event -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">4. Load Event</h2>
-            <p class="mb-4 text-gray-600">The content below should load automatically when the page loads.</p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">4. Immediate Load Event</h2>
+            <p class="mb-4 text-gray-600">The <code>mx-load</code> event triggers immediately when the element is added to the DOM.</p>
 
             <div class="p-4 bg-yellow-50 rounded-md border border-yellow-200">
-                <div mt-on="load:@request" mt-method="GET" mt-path="/test-content">
-                    <span class="text-gray-400 animate-pulse">Waiting for load event...</span>
+                <div mx-load="@request:@inner" mt-method="GET" mt-path="/test-content">
+                    <span class="text-gray-400 animate-pulse text-sm">Waiting for immediate load...</span>
                 </div>
             </div>
         </section>
 
-        <!-- Section 5: Custom Data -->
+        <!-- Section 5: Event Modifiers (.prevent, .stop) -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">5. Custom Data</h2>
-            <p class="mb-4 text-gray-600">Sending custom JSON data with a request.</p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">5. Event Modifiers (.prevent, .stop)</h2>
+            <p class="mb-4 text-gray-600">Modifiers like <code>.prevent</code> and <code>.stop</code> are supported.</p>
 
-            <div
-                class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <button class="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-                    mt-on="click:@request" mt-method="POST" mt-path="/api/action"
-                    mt-data='{"key": "value", "action": "test"}'>
-                    Send Custom Data
-                </button>
-            </div>
-        </section>
-
-        <!-- Section 6: Controller -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">6. Controller</h2>
-            <p class="mb-4 text-gray-600">Using a controller to handle events and presentation.</p>
-
-            <div
-                class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <div class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-                    mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-controller="UpdateContent"
-                    mt-pr="@controller:update">
-                    Update Content
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 7: Controller -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">7. Controller</h2>
-            <p class="mb-4 text-gray-600">Using a controller to handle events and presentation.</p>
-
-            <div
-                class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <div class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-                    mt-on="click:@event" mt-controller="ToggleContent" mt-pr="@controller:toggle">
-                    <span>Toggle Content</span>
-
-                </div>
-                <div id="toggle-content" class="hidden p-4 bg-gray-200 rounded-md">
-                    <p>This content will be toggled.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 8: Presenters (@outer) -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">8. Presenters (@outer)</h2>
-            <p class="mb-4 text-gray-600">Clicking the button should replace the button itself with the response.</p>
-
-            <div
-                class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <button class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                    mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@outer">
-                    Replace Me Entirely
-                </button>
-            </div>
-        </section>
-
-        <!-- Section 9: Presenters (@class) -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">9. Presenters (@class)</h2>
-            <p class="mb-4 text-gray-600">Clicking the button should update all elements with the class `update-me`.</p>
-
-            <div
-                class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-4">
-                <button class="px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
-                    mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@class:update-me">
-                    Update All Class Elements
-                </button>
-
-                <div class="update-me p-4 bg-white border border-gray-200 rounded shadow-sm">Class Element 1</div>
-                <div class="update-me p-4 bg-white border border-gray-200 rounded shadow-sm">Class Element 2</div>
-            </div>
-        </section>
-
-        <!-- Section 10: Mouseover Event -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">10. Mouseover Event</h2>
-            <p class="mb-4 text-gray-600">Hover over the box to toggle the content below.</p>
-
-            <div
-                class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-4">
-                <div class="px-6 py-4 bg-orange-500 text-white rounded cursor-pointer hover:bg-orange-600 transition-colors"
-                    mt-on="mouseover:@event" mt-controller="ToggleContent" mt-pr="@controller:toggleMouseover">
-                    Hover over me
-                </div>
-
-                <div id="toggle-content-mouseover"
-                    class="hidden p-4 bg-orange-100 text-orange-800 rounded border border-orange-200">
-                    <p>You are hovering!</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 11: Presenters (@append) -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">11. Presenters (@append)</h2>
-            <p class="mb-4 text-gray-600">Clicking the container should append content inside it.</p>
-
-            <div class="p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
-                mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@append">
-                <p class="font-medium text-center text-gray-500 mb-4">Click anywhere in this box to append content</p>
-                <div class="p-2 bg-white border border-gray-200 rounded mb-2">Initial Content</div>
-            </div>
-        </section>
-
-        <!-- Section 12: Presenters (@prepend) -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">12. Presenters (@prepend)</h2>
-            <p class="mb-4 text-gray-600">Clicking the container should prepend content inside it.</p>
-
-            <div class="p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
-                mt-on="click:@request" mt-method="GET" mt-path="/test-content" mt-pr="@prepend">
-                <p class="font-medium text-center text-gray-500 mb-4">Click anywhere in this box to prepend content</p>
-                <div class="p-2 bg-white border border-gray-200 rounded mb-2">Initial Content</div>
-            </div>
-        </section>
-
-        <!-- Section 13: mx-* Syntax (Basic) -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">13. mx-* Syntax (Basic)</h2>
-            <p class="mb-4 text-gray-600">New event-centric syntax: <code>mx-click="@request:@inner"</code></p>
-
-            <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <button class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-                    mx-click="@request:@inner" mx-path="/test-content">
-                    mx-click="@request:@inner"
-                </button>
-            </div>
-        </section>
-
-        <!-- Section 14: mx-* with @id presenter -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">14. mx-* with @id Presenter</h2>
-            <p class="mb-4 text-gray-600">New syntax with target: <code>mx-click="@request:@id:target-div"</code></p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md">
-                    <button class="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
-                        mx-click="@request:@id:mx-target-div" mx-path="/test-content">
-                        Update Target
-                    </button>
-                </div>
-
-                <div id="mx-target-div"
-                    class="flex items-center justify-center p-8 bg-gray-200 rounded-md text-gray-500 italic border border-gray-300">
-                    Target content will appear here...
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 15: mx-* with .prevent modifier -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">15. mx-* with .prevent Modifier</h2>
-            <p class="mb-4 text-gray-600">Modifier syntax: <code>mx-click.prevent="@request:@inner"</code></p>
-
-            <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <a href="https://example.com" class="px-6 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
-                    mx-click.prevent="@request:@inner" mx-path="/test-content">
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-4">
+                <a href="https://google.com" target="_blank"
+                    class="px-6 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                    mx-click.prevent="@request:@id:mod-result" mt-path="/test-content">
                     Link with .prevent (won't navigate)
                 </a>
+
+                <div id="mod-result" class="text-sm text-gray-500 italic">Result will show here</div>
             </div>
         </section>
 
-        <!-- Section 16: mx-* with .debounce modifier -->
+        <!-- Section 6: Once Modifier (.once) -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">16. mx-* with .debounce Modifier</h2>
-            <p class="mb-4 text-gray-600">Debounced input: <code>mx-input.debounce.500ms="@request:@inner"</code></p>
-
-            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <input type="text" 
-                    class="w-full max-w-md px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Type to search (debounced 500ms)"
-                    mx-input.debounce.500ms="@request:@id:mx-search-results" mx-path="/test-content" />
-                <div id="mx-search-results" class="mt-4 p-4 bg-white border rounded w-full max-w-md text-center text-gray-500">
-                    Results appear here
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 17: mx-* with custom capability -->
-        <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">17. mx-* with Custom Capability</h2>
-            <p class="mb-4 text-gray-600">Custom capability: <code>mx-click="Analytics.track:@inner"</code></p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">6. Once Modifier (.once)</h2>
+            <p class="mb-4 text-gray-600">The handler triggers only once and is then removed.</p>
 
             <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
-                <button class="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-                    mx-click="Analytics.track:@inner">
-                    Track Event (see console)
+                <button class="px-6 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 transition-colors"
+                    mx-click.once="@request:@inner" mt-method="GET" mt-path="/test-content">
+                    Click me (Works only once)
                 </button>
             </div>
         </section>
 
-        <!-- Section 18: mx-* load event -->
+        <!-- Section 7: Outside Modifier (.outside) -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">18. mx-* Load Event</h2>
-            <p class="mb-4 text-gray-600">Auto-load on mount: <code>mx-load="@request:@inner"</code></p>
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">7. Outside Modifier (.outside)</h2>
+            <p class="mb-4 text-gray-600">Detects clicks outside the element.</p>
 
-            <div class="p-4 bg-yellow-50 rounded-md border border-yellow-200">
-                <div mx-load="@request:@inner" mx-path="/test-content">
-                    <span class="text-gray-400 animate-pulse">Loading...</span>
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-4">
+                <div class="p-8 bg-white border-4 border-indigo-200 rounded-xl shadow-sm cursor-default"
+                    mx-click.outside="@event:@id:outside-msg">
+                    Click anywhere <strong>OUTSIDE</strong> this box
+                </div>
+                <div id="outside-msg" class="text-indigo-600 font-bold h-6 text-sm"></div>
+            </div>
+        </section>
+
+        <!-- Section 8: Debounce (.debounce) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">8. Performance Modifiers (.debounce)</h2>
+            <p class="mb-4 text-gray-600">Debounced input for search-like functionality.</p>
+
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                <input type="text"
+                    class="w-full max-w-md px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Type fast... (500ms debounce)"
+                    mx-input.debounce.500ms="@request:@id:search-results" mt-path="/test-content" />
+                <div id="search-results"
+                    class="mt-4 p-4 bg-white border rounded w-full max-w-md text-center text-gray-500 text-sm">
+                    Waiting for input...
                 </div>
             </div>
         </section>
+
+        <!-- Section 9: Controllers (mt-controller) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">9. Controllers (mt-controller)</h2>
+            <p class="mb-4 text-gray-600">Integrating with JavaScript controllers.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                    <button class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                        mx-click="@request:@controller:update" mt-controller="UpdateContent" mt-method="GET" mt-path="/test-content">
+                        Update via Controller
+                    </button>
+                </div>
+                <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-4">
+                    <button class="px-6 py-2 bg-slate-700 text-white rounded hover:bg-slate-800 transition-colors"
+                        mx-click="@event:@controller:toggle" mt-controller="ToggleContent">
+                        Toggle Content
+                    </button>
+                    <div id="toggle-content" class="hidden p-4 bg-white border rounded shadow-inner text-sm">
+                        I am visible now!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 10: Stream Action (@stream) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">10. Http Streaming (@stream)</h2>
+            <p class="mb-4 text-gray-600">Simulating real-time updates via streaming responses.</p>
+
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-4">
+                <button class="px-6 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors"
+                    mx-click="@stream:@append" mt-path="/stream-test">
+                    Start Stream
+                </button>
+                <div id="stream-output" class="w-full max-w-md p-4 bg-black text-green-400 font-mono text-xs rounded overflow-auto max-h-40">
+                    > Terminal...
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 11: Window/Document Listeners -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">11. Window/Document Listeners</h2>
+            <p class="mb-4 text-gray-600">Listen for events on <code>window</code> or <code>document</code>.</p>
+
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-md border border-dashed border-gray-300 space-y-2">
+                <div class="text-sm text-gray-400" 
+                    mx-keydown.window="@event:@id:key-display">
+                    Press any key to see it captured...
+                </div>
+                <div id="key-display" class="text-3xl font-bold text-indigo-400 h-10"></div>
+            </div>
+        </section>
+
     </div>
+
+    <!-- Scripts for testing capabilities -->
+    <script>
+        // Register a dummy capability for testing if needed
+        document.addEventListener('mate:init', () => {
+            console.log('Mate initialized');
+        });
+    </script>
 
 </body>
 

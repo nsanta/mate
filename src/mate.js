@@ -1,4 +1,4 @@
-import { handleLegacyEvent, attachEventHandler } from './events.js';
+import { attachEventHandler } from './events.js';
 import { ATTRIBUTES } from './constants.js';
 import { parseAllEventAttributes } from './parser.js';
 import capabilities from './capabilities.js';
@@ -17,17 +17,8 @@ function initController(node, attrName) {
 function processNode(node) {
   if (!node.querySelectorAll) return;
   
-  node.querySelectorAll(`[${ATTRIBUTES.TRIGGER}]`).forEach((subNode) => {
-    const [event, action, option] = subNode.getAttribute(ATTRIBUTES.TRIGGER).split(":");
-    handleLegacyEvent(event, subNode, action, option);
-  });
-
   node.querySelectorAll(`[${ATTRIBUTES.CONTROLLER}]`).forEach((subNode) => {
     initController(subNode, ATTRIBUTES.CONTROLLER);
-  });
-
-  node.querySelectorAll(`[${ATTRIBUTES.MX_CONTROLLER}]`).forEach((subNode) => {
-    initController(subNode, ATTRIBUTES.MX_CONTROLLER);
   });
 
   const allElements = node.querySelectorAll('*');
@@ -38,14 +29,8 @@ function processNode(node) {
     });
   });
 
-  if (node.hasAttribute && node.hasAttribute(ATTRIBUTES.TRIGGER)) {
-    const [event, action, option] = node.getAttribute(ATTRIBUTES.TRIGGER).split(":");
-    handleLegacyEvent(event, node, action, option);
-  }
-  
   if (node.hasAttribute) {
     initController(node, ATTRIBUTES.CONTROLLER);
-    initController(node, ATTRIBUTES.MX_CONTROLLER);
     
     const parsedEvents = parseAllEventAttributes(node);
     parsedEvents.forEach((parsed) => {

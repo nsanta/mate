@@ -1,14 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import mate from '../src/mate.js';
-import { handleLegacyEvent } from '../src/events.js';
+import { attachEventHandler } from '../src/events.js';
 import { ATTRIBUTES } from '../src/constants.js';
 
 vi.mock('../src/events.js', () => ({
-    default: {
-        click: vi.fn(),
-        mouseover: vi.fn(),
-    },
-    handleLegacyEvent: vi.fn(),
     attachEventHandler: vi.fn(),
 }));
 
@@ -59,16 +54,17 @@ describe('mate', () => {
         }));
     });
 
-    it('should attach events to existing nodes', () => {
+    it('should attach event handlers to existing nodes using mx- syntax', () => {
         const node = document.createElement('div');
-        node.setAttribute(ATTRIBUTES.TRIGGER, 'click:action:option');
+        node.setAttribute('mx-click', '@request:@inner');
+        node.setAttribute('mt-path', '/test');
         document.body.appendChild(node);
 
         mate();
         document.dispatchEvent(new Event('DOMContentLoaded'));
 
-        expect(handleLegacyEvent).toHaveBeenCalledWith('click', node, 'action', 'option');
-
+        expect(attachEventHandler).toHaveBeenCalled();
+        
         document.body.removeChild(node);
     });
 
@@ -90,7 +86,7 @@ describe('mate', () => {
         document.dispatchEvent(new Event('DOMContentLoaded'));
 
         const newNode = document.createElement('div');
-        newNode.setAttribute(ATTRIBUTES.TRIGGER, 'mouseover:action:option');
+        newNode.setAttribute('mx-mouseover', '@request:@inner');
 
         const mutations = [{
             type: 'childList',
@@ -99,6 +95,6 @@ describe('mate', () => {
 
         observerCallback(mutations);
 
-        expect(handleLegacyEvent).toHaveBeenCalledWith('mouseover', newNode, 'action', 'option');
+        expect(attachEventHandler).toHaveBeenCalled();
     });
 });

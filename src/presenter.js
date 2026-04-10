@@ -1,5 +1,3 @@
-import { ATTRIBUTES } from './constants.js';
-
 const INNER = 'inner';
 const OUTER = 'outer';
 
@@ -71,21 +69,8 @@ export async function present(node, response, presentation, target, option) {
     return;
   }
   
-  if (!node.hasAttribute(ATTRIBUTES.PRESENTER)) { 
-    await inner(node, response); 
-    return; 
-  }
-  
-  const presentAttr = node.getAttribute(ATTRIBUTES.PRESENTER);
-  const [action, whatever, opt] = presentAttr.split(":");
-  const presenter = PRESENTERS[action];
-  
-  if (presenter) {
-    await presenter(node, response, whatever, opt);
-  } else {
-    console.warn(`Presenter "${action}" not found`);
-    await inner(node, response);
-  }
+  // Default to @inner if no presentation is specified
+  await inner(node, response);
 }
 
 export default PRESENTERS;

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { present } from '../src/presenter.js';
-import { ATTRIBUTES } from '../src/constants.js';
 
 describe('presenter', () => {
     let node;
@@ -13,14 +12,13 @@ describe('presenter', () => {
         };
     });
 
-    it('should default to innerHTML if no presenter attribute', async () => {
+    it('should default to innerHTML if no presentation provided', async () => {
         await present(node, response);
         expect(node.innerHTML).toBe('<p>content</p>');
     });
 
     it('should handle @inner', async () => {
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@inner:_:_');
-        await present(node, response);
+        await present(node, response, '@inner');
         expect(node.innerHTML).toBe('<p>content</p>');
     });
 
@@ -28,9 +26,8 @@ describe('presenter', () => {
         // outerHTML requires the node to have a parent
         const parent = document.createElement('div');
         parent.appendChild(node);
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@outer:_:_');
 
-        await present(node, response);
+        await present(node, response, '@outer');
 
         expect(parent.innerHTML).toBe('<p>content</p>');
     });
@@ -40,9 +37,7 @@ describe('presenter', () => {
         target.id = 'target-id';
         document.body.appendChild(target);
 
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@id:target-id:_');
-
-        await present(node, response);
+        await present(node, response, '@id', 'target-id');
 
         expect(target.innerHTML).toBe('<p>content</p>');
         document.body.removeChild(target);
@@ -56,9 +51,7 @@ describe('presenter', () => {
         document.body.appendChild(target1);
         document.body.appendChild(target2);
 
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@class:target-class:_');
-
-        await present(node, response);
+        await present(node, response, '@class', 'target-class');
 
         expect(target1.innerHTML).toBe('<p>content</p>');
         expect(target2.innerHTML).toBe('<p>content</p>');
@@ -72,27 +65,24 @@ describe('presenter', () => {
             update: vi.fn(),
         };
         node.mtController = mockController;
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@controller:update:_');
 
-        await present(node, response);
+        await present(node, response, '@controller', 'update');
 
         expect(mockController.update).toHaveBeenCalledWith(response);
     });
 
     it('should handle @append', async () => {
         node.innerHTML = '<span>existing</span>';
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@append:_:_');
 
-        await present(node, response);
+        await present(node, response, '@append');
 
         expect(node.innerHTML).toBe('<span>existing</span><p>content</p>');
     });
 
     it('should handle @prepend', async () => {
         node.innerHTML = '<span>existing</span>';
-        node.setAttribute(ATTRIBUTES.PRESENTER, '@prepend:_:_');
 
-        await present(node, response);
+        await present(node, response, '@prepend');
 
         expect(node.innerHTML).toBe('<p>content</p><span>existing</span>');
     });

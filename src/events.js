@@ -83,99 +83,34 @@ export async function attachEventHandler(node, parsedEvent) {
   };
   
   const wrappedHandler = wrapHandlerWithModifiers(handler, parsedEvent);
-  const target = getEventTarget(node, modifiers);
-  
-  const listenerOptions = {
+
+  if (event === 'load') {
+    return wrappedHandler(DUMMY_EVENT, node);
+  }
+
+  const commonOptions = {
     capture: modifiers.includes(MODIFIERS.CAPTURE),
     passive: modifiers.includes(MODIFIERS.PASSIVE),
-    once: modifiers.includes(MODIFIERS.ONCE),
   };
-  
-  const eventHandler = (e) => wrappedHandler(e, node);
-  
+
   if (modifiers.includes(MODIFIERS.OUTSIDE)) {
     const outsideHandler = (e) => {
       if (!node.contains(e.target)) {
         wrappedHandler(e, node);
+        if (modifiers.includes(MODIFIERS.ONCE)) {
+          document.removeEventListener('click', outsideHandler, commonOptions);
+        }
       }
     };
-    document.addEventListener('click', outsideHandler, listenerOptions);
+    document.addEventListener('click', outsideHandler, commonOptions);
     return;
   }
+
+  const target = getEventTarget(node, modifiers);
+  const eventHandler = (e) => wrappedHandler(e, node);
   
-  target.addEventListener(event, eventHandler, listenerOptions);
-}
-
-function click(node, action, options) {
-  node.addEventListener("click", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const response = await actions[action](node, options, event);
-    if (!response) { return; }
-    present(node, response);
+  target.addEventListener(event, eventHandler, {
+    ...commonOptions,
+    once: modifiers.includes(MODIFIERS.ONCE),
   });
 }
-
-function submit(node, action, options) {
-  if (node.tagName !== 'FORM') { return }
-  node.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const response = await actions[action](node, options, event);
-    if (!response) { return; }
-    present(node, response);
-  });
-}
-
-async function load(node, action, options) {
-  const response = await actions[action](node, options, DUMMY_EVENT);
-  if (!response) { return; }
-  present(node, response, options);
-}
-
-function mouseover(node, action, options) {
-  node.addEventListener("mouseover", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const response = await actions[action](node, options, event);
-    if (!response) { return; }
-    present(node, response);
-  });
-}
-
-function mouseenter(node, action, options) {
-  node.addEventListener("mouseenter", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const response = await actions[action](node, options, event);
-    if (!response) { return; }
-    present(node, response);
-  });
-}
-
-function mouseleave(node, action, options) {
-  node.addEventListener("mouseleave", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const response = await actions[action](node, options, event);
-    if (!response) { return; }
-    present(node, response);
-  });
-}
-
-const legacyEvents = {
-  click,
-  submit,
-  load,
-  mouseover,
-  mouseenter,
-  mouseleave,
-};
-
-export function handleLegacyEvent(eventName, node, action, options) {
-  if (legacyEvents[eventName]) {
-    legacyEvents[eventName](node, action, options);
-  }
-}
-
-export default legacyEvents;

@@ -7,15 +7,9 @@ import { present } from './presenter.js';
  */
 const DEFAULT_OPTIONS = { method: "GET" };
 
-/**
- * Collects headers from meta tags with mx-header attribute.
- * Meta tags should be formatted as: <meta mx-header name="Header-Name" content="header-value" />
- *
- * @returns {Object} Headers object with header names as keys
- */
 function collectMetaHeaders() {
   const headers = {};
-  const metaHeaders = document.querySelectorAll(`meta[${ATTRIBUTES.MX_HEADER_META}]`);
+  const metaHeaders = document.querySelectorAll(`meta[${ATTRIBUTES.HEADER_META}]`);
 
   metaHeaders.forEach((meta) => {
     const name = meta.getAttribute('name');
@@ -114,7 +108,7 @@ async function stream(node, options, event) {
   const method = node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || 'GET';
 
   if (!url) {
-    console.error('@stream requires mx-path attribute');
+    console.error('@stream requires mt-path attribute');
     return null;
   }
 
@@ -349,7 +343,7 @@ async function ws(node, options, event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 
   if (!url) {
-    console.error('@ws requires mx-path attribute');
+    console.error('@ws requires mt-path attribute');
     return null;
   }
 
@@ -439,7 +433,7 @@ async function sse(node, options, event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 
   if (!url) {
-    console.error('@sse requires mx-path attribute');
+    console.error('@sse requires mt-path attribute');
     return null;
   }
 

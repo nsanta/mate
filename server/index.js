@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = 3000; // Or any desired port
+const port = 3030; // Or any desired port
 
 // Configure CORS
 // To allow all origins:
@@ -35,5 +35,5 @@ app.post('/api/action', (req, res) => {
 
 
 app.listen(port, () => {
-      console.log(`Static server with CORS support listening at http://localhost:${port}`);
-  });
+  console.log(`Static server with CORS support listening at http://localhost:${port}`);
+});

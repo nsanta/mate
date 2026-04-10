@@ -1,17 +1,11 @@
 //#region src/constants.js
 const ATTRIBUTES = {
-	TRIGGER: "mt-on",
 	CONTROLLER: "mt-controller",
 	REQUEST_METHOD: "mt-method",
 	REQUEST_PATH: "mt-path",
 	REQUEST_DATA: "mt-data",
-	PRESENTER: "mt-pr",
-	EVENT_PREFIX: "mx-",
-	MX_CONTROLLER: "mx-controller",
-	MX_METHOD: "mx-method",
-	MX_PATH: "mx-path",
-	MX_DATA: "mx-data",
-	MX_HEADER_META: "mx-header"
+	HEADER_META: "mt-header",
+	EVENT_PREFIX: "mx-"
 };
 const MODIFIERS = {
 	PREVENT: "prevent",
@@ -83,26 +77,16 @@ function hasPresenter(name) {
 }
 async function present(node, response, presentation, target, option) {
 	if (presentation) {
-		const presenter$1 = PRESENTERS[presentation];
-		if (presenter$1) {
-			await presenter$1(node, response, target, option);
+		const presenter = PRESENTERS[presentation];
+		if (presenter) {
+			await presenter(node, response, target, option);
 			return;
 		}
 		console.warn(`Presenter "${presentation}" not found`);
 		await inner(node, response);
 		return;
 	}
-	if (!node.hasAttribute(ATTRIBUTES.PRESENTER)) {
-		await inner(node, response);
-		return;
-	}
-	const [action, whatever, opt] = node.getAttribute(ATTRIBUTES.PRESENTER).split(":");
-	const presenter = PRESENTERS[action];
-	if (presenter) await presenter(node, response, whatever, opt);
-	else {
-		console.warn(`Presenter "${action}" not found`);
-		await inner(node, response);
-	}
+	await inner(node, response);
 }
 
 //#endregion
@@ -112,15 +96,9 @@ async function present(node, response, presentation, target, option) {
 * @constant {Object}
 */
 const DEFAULT_OPTIONS = { method: "GET" };
-/**
-* Collects headers from meta tags with mx-header attribute.
-* Meta tags should be formatted as: <meta mx-header name="Header-Name" content="header-value" />
-*
-* @returns {Object} Headers object with header names as keys
-*/
 function collectMetaHeaders() {
 	const headers = {};
-	document.querySelectorAll(`meta[${ATTRIBUTES.MX_HEADER_META}]`).forEach((meta) => {
+	document.querySelectorAll(`meta[${ATTRIBUTES.HEADER_META}]`).forEach((meta) => {
 		const name = meta.getAttribute("name");
 		const content = meta.getAttribute("content");
 		if (name && content) headers[name] = content;
@@ -197,7 +175,7 @@ async function stream(node, options, event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	const method = node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || "GET";
 	if (!url) {
-		console.error("@stream requires mx-path attribute");
+		console.error("@stream requires mt-path attribute");
 		return null;
 	}
 	const streamResponse = new StreamResponse();
@@ -381,7 +359,7 @@ var WebSocketClient = class {
 async function ws(node, options, event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	if (!url) {
-		console.error("@ws requires mx-path attribute");
+		console.error("@ws requires mt-path attribute");
 		return null;
 	}
 	if (node._wsClient) node._wsClient.close();
@@ -452,7 +430,7 @@ var SSEClient = class {
 async function sse(node, options, event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	if (!url) {
-		console.error("@sse requires mx-path attribute");
+		console.error("@sse requires mt-path attribute");
 		return null;
 	}
 	if (node._sseClient) node._sseClient.stop();
@@ -504,7 +482,7 @@ async function executeActionOrCapability(parsedEvent, node, event) {
 	if (action && actions_default[action]) response = await actions_default[action](node, null, event);
 	else if (capability) response = await executeCapability(capability, method, node, event, parsedEvent);
 	else if (action === "@event") response = event;
-	if (response) await present(node, response, presentation, target, presentationOption);
+	if (response) await present(node, response instanceof Response || typeof response === "object" && response !== null && "text" in response ? response : { text: () => Promise.resolve(String(response)) }, presentation, target, presentationOption);
 	return response;
 }
 var capabilities_default = {
@@ -565,83 +543,27 @@ async function attachEventHandler(node, parsedEvent) {
 		return await executeActionOrCapability(parsedEvent, node, originalEvent);
 	};
 	const wrappedHandler = wrapHandlerWithModifiers(handler, parsedEvent);
-	const target = getEventTarget(node, modifiers);
-	const listenerOptions = {
+	if (event === "load") return wrappedHandler(DUMMY_EVENT, node);
+	const commonOptions = {
 		capture: modifiers.includes(MODIFIERS.CAPTURE),
-		passive: modifiers.includes(MODIFIERS.PASSIVE),
-		once: modifiers.includes(MODIFIERS.ONCE)
+		passive: modifiers.includes(MODIFIERS.PASSIVE)
 	};
-	const eventHandler = (e) => wrappedHandler(e, node);
 	if (modifiers.includes(MODIFIERS.OUTSIDE)) {
 		const outsideHandler = (e) => {
-			if (!node.contains(e.target)) wrappedHandler(e, node);
+			if (!node.contains(e.target)) {
+				wrappedHandler(e, node);
+				if (modifiers.includes(MODIFIERS.ONCE)) document.removeEventListener("click", outsideHandler, commonOptions);
+			}
 		};
-		document.addEventListener("click", outsideHandler, listenerOptions);
+		document.addEventListener("click", outsideHandler, commonOptions);
 		return;
 	}
-	target.addEventListener(event, eventHandler, listenerOptions);
-}
-function click(node, action, options) {
-	node.addEventListener("click", async (event) => {
-		event.preventDefault();
-		event.stopPropagation();
-		const response = await actions_default[action](node, options, event);
-		if (!response) return;
-		present(node, response);
+	const target = getEventTarget(node, modifiers);
+	const eventHandler = (e) => wrappedHandler(e, node);
+	target.addEventListener(event, eventHandler, {
+		...commonOptions,
+		once: modifiers.includes(MODIFIERS.ONCE)
 	});
-}
-function submit(node, action, options) {
-	if (node.tagName !== "FORM") return;
-	node.addEventListener("submit", async (event) => {
-		event.preventDefault();
-		event.stopPropagation();
-		const response = await actions_default[action](node, options, event);
-		if (!response) return;
-		present(node, response);
-	});
-}
-async function load(node, action, options) {
-	const response = await actions_default[action](node, options, DUMMY_EVENT);
-	if (!response) return;
-	present(node, response, options);
-}
-function mouseover(node, action, options) {
-	node.addEventListener("mouseover", async (event) => {
-		event.preventDefault();
-		event.stopPropagation();
-		const response = await actions_default[action](node, options, event);
-		if (!response) return;
-		present(node, response);
-	});
-}
-function mouseenter(node, action, options) {
-	node.addEventListener("mouseenter", async (event) => {
-		event.preventDefault();
-		event.stopPropagation();
-		const response = await actions_default[action](node, options, event);
-		if (!response) return;
-		present(node, response);
-	});
-}
-function mouseleave(node, action, options) {
-	node.addEventListener("mouseleave", async (event) => {
-		event.preventDefault();
-		event.stopPropagation();
-		const response = await actions_default[action](node, options, event);
-		if (!response) return;
-		present(node, response);
-	});
-}
-const legacyEvents = {
-	click,
-	submit,
-	load,
-	mouseover,
-	mouseenter,
-	mouseleave
-};
-function handleLegacyEvent(eventName, node, action, options) {
-	if (legacyEvents[eventName]) legacyEvents[eventName](node, action, options);
 }
 
 //#endregion
@@ -781,28 +703,16 @@ function initController(node, attrName) {
 }
 function processNode(node) {
 	if (!node.querySelectorAll) return;
-	node.querySelectorAll(`[${ATTRIBUTES.TRIGGER}]`).forEach((subNode) => {
-		const [event, action, option] = subNode.getAttribute(ATTRIBUTES.TRIGGER).split(":");
-		handleLegacyEvent(event, subNode, action, option);
-	});
 	node.querySelectorAll(`[${ATTRIBUTES.CONTROLLER}]`).forEach((subNode) => {
 		initController(subNode, ATTRIBUTES.CONTROLLER);
-	});
-	node.querySelectorAll(`[${ATTRIBUTES.MX_CONTROLLER}]`).forEach((subNode) => {
-		initController(subNode, ATTRIBUTES.MX_CONTROLLER);
 	});
 	node.querySelectorAll("*").forEach((el) => {
 		parseAllEventAttributes(el).forEach((parsed) => {
 			attachEventHandler(el, parsed);
 		});
 	});
-	if (node.hasAttribute && node.hasAttribute(ATTRIBUTES.TRIGGER)) {
-		const [event, action, option] = node.getAttribute(ATTRIBUTES.TRIGGER).split(":");
-		handleLegacyEvent(event, node, action, option);
-	}
 	if (node.hasAttribute) {
 		initController(node, ATTRIBUTES.CONTROLLER);
-		initController(node, ATTRIBUTES.MX_CONTROLLER);
 		parseAllEventAttributes(node).forEach((parsed) => {
 			attachEventHandler(node, parsed);
 		});

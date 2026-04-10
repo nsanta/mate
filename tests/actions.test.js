@@ -78,7 +78,7 @@ describe('actions', () => {
 
         it('should include headers from meta tags', async () => {
             const meta = document.createElement('meta');
-            meta.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta.setAttribute(ATTRIBUTES.HEADER_META, '');
             meta.setAttribute('name', 'Authorization');
             meta.setAttribute('content', 'Bearer: TOKEN');
             document.head.appendChild(meta);
@@ -102,12 +102,12 @@ describe('actions', () => {
 
         it('should include multiple headers from meta tags', async () => {
             const meta1 = document.createElement('meta');
-            meta1.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta1.setAttribute(ATTRIBUTES.HEADER_META, '');
             meta1.setAttribute('name', 'Authorization');
             meta1.setAttribute('content', 'Bearer: TOKEN');
 
             const meta2 = document.createElement('meta');
-            meta2.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta2.setAttribute(ATTRIBUTES.HEADER_META, '');
             meta2.setAttribute('name', 'X-Custom-Header');
             meta2.setAttribute('content', 'custom-value');
 
@@ -186,7 +186,7 @@ describe('actions', () => {
 
             const result = await stream(node, {}, {});
 
-            expect(consoleSpy).toHaveBeenCalledWith('@stream requires mx-path attribute');
+            expect(consoleSpy).toHaveBeenCalledWith('@stream requires mt-path attribute');
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();
@@ -194,7 +194,7 @@ describe('actions', () => {
 
         it('should include headers from meta tags in stream requests', async () => {
             const meta = document.createElement('meta');
-            meta.setAttribute(ATTRIBUTES.MX_HEADER_META, '');
+            meta.setAttribute(ATTRIBUTES.HEADER_META, '');
             meta.setAttribute('name', 'Authorization');
             meta.setAttribute('content', 'Bearer: STREAM_TOKEN');
             document.head.appendChild(meta);
@@ -264,7 +264,7 @@ describe('actions', () => {
 
             const result = await ws(node, {}, {});
 
-            expect(consoleSpy).toHaveBeenCalledWith('@ws requires mx-path attribute');
+            expect(consoleSpy).toHaveBeenCalledWith('@ws requires mt-path attribute');
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();
@@ -302,7 +302,7 @@ describe('actions', () => {
 
             const result = await sse(node, {}, {});
 
-            expect(consoleSpy).toHaveBeenCalledWith('@sse requires mx-path attribute');
+            expect(consoleSpy).toHaveBeenCalledWith('@sse requires mt-path attribute');
             expect(result).toBeNull();
 
             consoleSpy.mockRestore();
