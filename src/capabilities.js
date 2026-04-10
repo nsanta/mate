@@ -48,7 +48,7 @@ export async function executeActionOrCapability(parsedEvent, node, event) {
   let response = null;
 
   if (action && actions[action]) {
-    response = await actions[action](node, null, event);
+    response = await actions[action](node, parsedEvent, event);
   } else if (capability) {
     response = await executeCapability(capability, method, node, event, parsedEvent);
   } else if (action === '@event') {

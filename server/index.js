@@ -25,8 +25,22 @@ app.get('/test-content', (req, res) => {
 });
 
 app.post('/submit-form', (req, res) => {
-  const { username } = req.body;
-  res.send(`<div class="p-4 bg-blue-100 text-blue-800 rounded-md border border-blue-200">Form submitted! Hello, <strong>${username || 'Anonymous'}</strong>.</div>`);
+  const contentType = req.headers['content-type'];
+  let bodyDisplay = req.body;
+
+  if (contentType?.includes('multipart/form-data')) {
+    bodyDisplay = "{Multipart Data Detected - server needs special middleware to parse}";
+  } else {
+    bodyDisplay = req.body;
+  }
+
+  res.send(`
+    <div class="p-4 bg-sky-50 border border-sky-200 rounded-md text-sky-900">
+      <div class="font-bold mb-1">Server Received:</div>
+      <div class="text-xs font-mono mb-2">Content-Type: ${contentType}</div>
+      <pre class="bg-white p-2 border rounded overflow-auto max-h-40 text-xs">${bodyDisplay}</pre>
+    </div>
+  `);
 });
 
 app.post('/api/action', (req, res) => {

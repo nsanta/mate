@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import actions from '../src/actions.js';
 import { ATTRIBUTES } from '../src/constants.js';
 
@@ -9,8 +9,15 @@ describe('actions', () => {
         beforeEach(() => {
             global.fetch = vi.fn();
             global.FormData = class {
-                constructor() {
+                constructor(form) {
                     this.data = [];
+                    if (form && form.elements) {
+                        for (const el of form.elements) {
+                            if (el.name && el.value && (!['checkbox', 'radio'].includes(el.type) || el.checked)) {
+                                this.append(el.name, el.value);
+                            }
+                        }
+                    }
                 }
                 append(key, value) {
                     this.data.push([key, value]);
@@ -20,8 +27,13 @@ describe('actions', () => {
                 }
             };
             global.URLSearchParams = class {
-                constructor() {
+                constructor(init) {
                     this.params = {};
+                    if (init && typeof init[Symbol.iterator] === 'function') {
+                        for (const [key, value] of init) {
+                            this.append(key, value);
+                        }
+                    }
                 }
                 append(key, value) {
                     this.params[key] = value;
@@ -131,6 +143,142 @@ describe('actions', () => {
                 document.head.removeChild(meta1);
                 document.head.removeChild(meta2);
             }
+        });
+
+        describe('@form:<format> syntax', () => {
+            let form;
+            beforeEach(() => {
+                form = document.createElement('form');
+                const input1 = document.createElement('input');
+                input1.name = 'username';
+                input1.value = 'john_doe';
+                const input2 = document.createElement('input');
+                input2.name = 'email';
+                input2.value = 'john@example.com';
+                form.appendChild(input1);
+                form.appendChild(input2);
+                document.body.appendChild(form);
+            });
+
+            afterEach(() => {
+                if (form && form.parentNode) {
+                    document.body.removeChild(form);
+                }
+            });
+
+            it('should submit form data as JSON with @form:json', async () => {
+                const node = document.createElement('button');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+                node.setAttribute(ATTRIBUTES.REQUEST_METHOD, 'POST');
+                node.setAttribute(ATTRIBUTES.REQUEST_DATA, '@form:json');
+                form.appendChild(node);
+
+                await request(node, {}, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+                    method: 'POST',
+                    headers: expect.objectContaining({
+                        'Content-Type': 'application/json',
+                    }),
+                    body: JSON.stringify({ username: 'john_doe', email: 'john@example.com' }),
+                }));
+            });
+
+            it('should submit form data as URLSearchParams with @form:form', async () => {
+                const node = document.createElement('button');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+                node.setAttribute(ATTRIBUTES.REQUEST_METHOD, 'POST');
+                node.setAttribute(ATTRIBUTES.REQUEST_DATA, '@form:form');
+                form.appendChild(node);
+
+                await request(node, {}, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+                    method: 'POST',
+                    body: expect.any(global.URLSearchParams),
+                }));
+            });
+
+            it('should submit form data as FormData with @form:multipart', async () => {
+                const node = document.createElement('button');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+                node.setAttribute(ATTRIBUTES.REQUEST_METHOD, 'POST');
+                node.setAttribute(ATTRIBUTES.REQUEST_DATA, '@form:multipart');
+                form.appendChild(node);
+
+                await request(node, {}, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+                    method: 'POST',
+                    body: expect.any(global.FormData),
+                }));
+            });
+
+            it('should find the closest form if trigger is nested', async () => {
+                const container = document.createElement('div');
+                const node = document.createElement('button');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+                node.setAttribute(ATTRIBUTES.REQUEST_METHOD, 'POST');
+                node.setAttribute(ATTRIBUTES.REQUEST_DATA, '@form:json');
+                container.appendChild(node);
+                form.appendChild(container);
+
+                await request(node, {}, {});
+
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+                    body: JSON.stringify({ username: 'john_doe', email: 'john@example.com' }),
+                }));
+            });
+
+            it('should handle multiple values for the same key in @form:json', async () => {
+                const checkbox1 = document.createElement('input');
+                checkbox1.type = 'checkbox';
+                checkbox1.name = 'roles';
+                checkbox1.value = 'admin';
+                checkbox1.checked = true;
+                const checkbox2 = document.createElement('input');
+                checkbox2.type = 'checkbox';
+                checkbox2.name = 'roles';
+                checkbox2.value = 'user';
+                checkbox2.checked = true;
+                form.appendChild(checkbox1);
+                form.appendChild(checkbox2);
+
+                const node = document.createElement('button');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+                node.setAttribute(ATTRIBUTES.REQUEST_METHOD, 'POST');
+                node.setAttribute(ATTRIBUTES.REQUEST_DATA, '@form:json');
+                form.appendChild(node);
+
+                await request(node, {}, {});
+
+                const fetchOptions = global.fetch.mock.calls[0][1];
+                const body = JSON.parse(fetchOptions.body);
+                expect(body.roles).toEqual(['admin', 'user']);
+            });
+
+            it('should warn and return null if no form is found', async () => {
+                const node = document.createElement('button');
+                node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+                node.setAttribute(ATTRIBUTES.REQUEST_METHOD, 'POST');
+                node.setAttribute(ATTRIBUTES.REQUEST_DATA, '@form:json');
+                // node is not in document or form
+
+                const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+                await request(node, {}, {});
+
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('@form:json requested but no form found'),
+                    expect.any(HTMLElement)
+                );
+                expect(global.fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+                    method: 'POST',
+                }));
+                expect(global.fetch.mock.calls[0][1].body).toBeUndefined();
+
+                consoleSpy.mockRestore();
+            });
         });
     });
 

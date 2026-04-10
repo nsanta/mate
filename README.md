@@ -98,6 +98,7 @@ These headers will be automatically included in all `@request` and `@stream` act
 |--------|-------------|----------|
 | `@request` | Makes an HTTP request (GET, POST, etc.) | HTTP |
 | `@event` | Passes event through to controller | N/A |
+| `@trigger` | Dispatches a new DOM event | N/A |
 | `@stream` | Streams HTTP responses with real-time updates | HTTP |
 | `@ws` | Establishes WebSocket connection for bidirectional communication | WebSocket |
 | `@sse` | Establishes Server-Sent Events connection for real-time updates | SSE |
@@ -429,6 +430,30 @@ Supported presenter actions:
   <input type="text" name="username" />
   <button type="submit">Submit</button>
 </form>
+
+### Dispatching Events (`@trigger`)
+
+Use the `@trigger` action to dispatch DOM events. The first parameter is the event name, and the second (optional) parameter is a CSS selector for the target element. If no target is specified, the event is dispatched on the element itself (and bubbles up by default).
+
+```html
+<!-- Trigger 'submit' on the parent form when input changes -->
+<form mx-submit="@request:@inner" mx-path="/api/save">
+  <input name="search" 
+         placeholder="Search..." 
+         mx-input.debounce.500ms="@trigger:submit" />
+</form>
+
+<!-- Trigger a custom event on a specific element by ID -->
+<button mx-click="@trigger:ping:#target-element">
+  Ping Target
+</button>
+
+<div id="target-element" 
+     mx-ping="@request:@inner" 
+     mx-path="/pong">
+  Waiting for ping...
+</div>
+```
 ```
 
 ### Authentication with Meta Headers
@@ -470,21 +495,35 @@ Configure authentication headers once in the `<head>` and they'll apply to all r
 </div>
 ```
 
-### Sending Custom Data
+### Declarative Form Data Submission (`@form:<format>`)
+
+The `mx-data` attribute can automatically extract data from the nearest ancestor form using the `@form:<format>` syntax. This is particularly useful for submitting forms via buttons that are not standard submit buttons, or when you need a specific payload format.
 
 ```html
-<!-- mx-* syntax -->
-<button mx-click="@request:@inner" mx-method="POST" mx-path="/api/action" mx-data='{"key": "value"}'>
-  Send Data
-</button>
-
-<!-- mt-* syntax (legacy) -->
-<button mt-on="click:@request" mt-method="POST" mt-path="/api/action" mt-data='{"key": "value"}'>
-  Send Data
-</button>
+<form>
+  <input name="username" value="john_doe" />
+  <input name="email" value="john@example.com" />
+  
+  <button mx-click="@request:@inner" 
+          mx-method="POST" 
+          mx-path="/api/save" 
+          mx-data="@form:json">
+    Save via JSON
+  </button>
+</form>
 ```
 
-### Using a Controller
+| Format | Description | Content-Type |
+|--------|-------------|--------------|
+| `@form:json` | Serializes form data as a JSON object | `application/json` |
+| `@form:form` | Serializes form data as URL-encoded | `application/x-www-form-urlencoded` |
+| `@form:multipart` | Sends as `FormData` | `multipart/form-data` |
+
+**Note:** For `@form:json`, multiple inputs with the same name are automatically collected into an array.
+
+---
+
+## Examples
 
 ```html
 <!-- mx-* syntax -->

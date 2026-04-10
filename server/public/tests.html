@@ -217,6 +217,97 @@
             </div>
         </section>
 
+        <!-- Section 12: Trigger Action (@trigger) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">12. Trigger Action (@trigger)</h2>
+            <p class="mb-4 text-gray-600">Dispatched DOM events. Useful for triggering sibling or parent logic.</p>
+
+            <div class="space-y-8">
+                <div class="p-6 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                    <h3 class="font-medium mb-4 text-sm text-gray-500">Case A: Trigger Form Submit from Input (Debounced)</h3>
+                    <form class="flex flex-col space-y-4 max-w-md mx-auto" 
+                          mx-submit="@request:@id:trigger-result" 
+                          mx-method="POST"
+                          mx-path="/submit-form">
+                        <input type="text" name="username"
+                            class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Type to trigger submit (1s debounce)..." 
+                            mx-input.debounce.1000ms="@trigger:submit" />
+                        <div id="trigger-result" class="text-sm text-center text-emerald-600 font-medium min-h-6"></div>
+                    </form>
+                </div>
+
+                <div class="p-6 bg-gray-100 rounded-md border border-dashed border-gray-300">
+                    <h3 class="font-medium mb-4 text-sm text-gray-500">Case B: Targeted Trigger on another element</h3>
+                    <div class="flex items-center space-x-4">
+                        <button class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                                mx-click="@trigger:ping:#ping-target">
+                            Ping Target
+                        </button>
+                        <div id="ping-target" 
+                             class="flex-1 p-4 bg-white border rounded shadow-inner text-sm text-gray-500 flex items-center justify-center italic"
+                             mx-ping="@request:@inner"
+                             mx-method="GET"
+                             mx-path="/test-content">
+                            Waiting for ping...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- Section 13: Form Data Formats (@form:<format>) -->
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-indigo-700">13. Form Data Formats (@form:&lt;format&gt;)</h2>
+            <p class="mb-4 text-gray-600">Extract form data automatically in different formats.</p>
+
+            <div class="space-y-6">
+                <form id="format-form" class="p-6 bg-gray-100 rounded-md border border-dashed border-gray-300 text-left">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Field 1</label>
+                            <input type="text" name="field1" value="Value 1"
+                                class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Field 2</label>
+                            <input type="text" name="field2" value="Value 2"
+                                class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 justify-center">
+                        <button type="button" 
+                                class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                                mx-click="@request:@id:format-result" 
+                                mx-method="POST" 
+                                mx-path="/submit-form"
+                                mx-data="@form:json">
+                            Submit as JSON
+                        </button>
+                        <button type="button" 
+                                class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
+                                mx-click="@request:@id:format-result" 
+                                mx-method="POST" 
+                                mx-path="/submit-form"
+                                mx-data="@form:form">
+                            Submit as Form (Encoded)
+                        </button>
+                        <button type="button" 
+                                class="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                                mx-click="@request:@id:format-result" 
+                                mx-method="POST" 
+                                mx-path="/submit-form"
+                                mx-data="@form:multipart">
+                            Submit as Multipart
+                        </button>
+                    </div>
+
+                    <div id="format-result" class="mt-4 p-4 bg-white border rounded text-center text-sm font-mono text-gray-600 min-h-[3rem] flex items-center justify-center">
+                        Result will appear here...
+                    </div>
+                </form>
+            </div>
+        </section>
+
     </div>
 
     <!-- Scripts for testing capabilities -->

@@ -106,6 +106,32 @@ function collectMetaHeaders() {
 	return headers;
 }
 /**
+* Helper to extract form data in various formats.
+*
+* @param {HTMLElement} node - The element triggering the request.
+* @param {string} format - The desired format (json, multipart, form).
+* @returns {FormData|URLSearchParams|string|null} The extracted body content.
+*/
+function extractFormData(node, format) {
+	const form = node instanceof HTMLFormElement ? node : node.closest("form");
+	if (!form) {
+		console.warn(`@form:${format} requested but no form found for element`, node);
+		return null;
+	}
+	const formData = new FormData(form);
+	if (format === "multipart") return formData;
+	if (format === "form") return new URLSearchParams(formData);
+	if (format === "json") {
+		const data = {};
+		for (const [key, value] of formData) if (data[key] !== void 0) {
+			if (!Array.isArray(data[key])) data[key] = [data[key]];
+			data[key].push(value);
+		} else data[key] = value;
+		return JSON.stringify(data);
+	}
+	return null;
+}
+/**
 * Performs an HTTP request based on element's attributes.
 *
 * @async
@@ -119,7 +145,16 @@ async function request(node, options, event) {
 		method: node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || DEFAULT_OPTIONS.method,
 		headers: collectMetaHeaders()
 	};
-	if (!["GET", "HEAD"].includes(requestOptions.method)) if (node.tagName === "FORM") {
+	const mxData = node.getAttribute(ATTRIBUTES.REQUEST_DATA);
+	const isFormFormat = mxData && mxData.startsWith("@form:");
+	if (!["GET", "HEAD"].includes(requestOptions.method)) if (isFormFormat) {
+		const format = mxData.split(":")[1];
+		const body = extractFormData(node, format);
+		if (body) {
+			requestOptions.body = body;
+			if (format === "json") requestOptions.headers["Content-Type"] = "application/json";
+		}
+	} else if (node.tagName === "FORM") {
 		const formData = new FormData(node);
 		const params = new URLSearchParams();
 		for (const pair of formData) params.append(pair[0], pair[1]);
@@ -142,6 +177,30 @@ async function request(node, options, event) {
 */
 async function triggerEvent(node, options, event) {
 	return event;
+}
+/**
+* Triggers a DOM event.
+*
+* @async
+* @param {HTMLElement} node - The DOM element.
+* @param {Object} options - Parsed event options.
+* @param {Event} event - The original event.
+* @returns {Promise<null>}
+*/
+async function trigger(node, options, event) {
+	const { presentation: eventName, target } = options || {};
+	if (!eventName || eventName.startsWith("@")) {
+		console.warn(`@trigger requires an event name (e.g., @trigger:submit). Found: "${eventName}"`);
+		return null;
+	}
+	const eventToTrigger = new Event(eventName, {
+		bubbles: true,
+		cancelable: true
+	});
+	const targetElement = target ? document.querySelector(target) : node;
+	if (targetElement) targetElement.dispatchEvent(eventToTrigger);
+	else console.warn(`@trigger target "${target}" not found`);
+	return null;
 }
 /**
 * Streaming response class that mimics Response interface for presenter compatibility.
@@ -442,6 +501,7 @@ async function sse(node, options, event) {
 var actions_default = {
 	"@request": request,
 	"@event": triggerEvent,
+	"@trigger": trigger,
 	"@stream": stream,
 	"@ws": ws,
 	"@sse": sse
@@ -479,7 +539,7 @@ async function executeCapability(name, method, node, event, parsedEvent) {
 async function executeActionOrCapability(parsedEvent, node, event) {
 	const { action, capability, method, presentation, target, presentationOption } = parsedEvent;
 	let response = null;
-	if (action && actions_default[action]) response = await actions_default[action](node, null, event);
+	if (action && actions_default[action]) response = await actions_default[action](node, parsedEvent, event);
 	else if (capability) response = await executeCapability(capability, method, node, event, parsedEvent);
 	else if (action === "@event") response = event;
 	if (response) await present(node, response instanceof Response || typeof response === "object" && response !== null && "text" in response ? response : { text: () => Promise.resolve(String(response)) }, presentation, target, presentationOption);

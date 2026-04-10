@@ -23,6 +23,48 @@ function collectMetaHeaders() {
 }
 
 /**
+ * Helper to extract form data in various formats.
+ *
+ * @param {HTMLElement} node - The element triggering the request.
+ * @param {string} format - The desired format (json, multipart, form).
+ * @returns {FormData|URLSearchParams|string|null} The extracted body content.
+ */
+function extractFormData(node, format) {
+  const form = node instanceof HTMLFormElement ? node : node.closest('form');
+  if (!form) {
+    console.warn(`@form:${format} requested but no form found for element`, node);
+    return null;
+  }
+
+  const formData = new FormData(form);
+
+  if (format === 'multipart') {
+    return formData; // Fetch will automatically set the correct Content-Type with boundary
+  }
+
+  if (format === 'form') {
+    return new URLSearchParams(formData);
+  }
+
+  if (format === 'json') {
+    const data = {};
+    for (const [key, value] of formData) {
+      if (data[key] !== undefined) {
+        if (!Array.isArray(data[key])) {
+          data[key] = [data[key]];
+        }
+        data[key].push(value);
+      } else {
+        data[key] = value;
+      }
+    }
+    return JSON.stringify(data);
+  }
+
+  return null;
+}
+
+/**
  * Performs an HTTP request based on element's attributes.
  *
  * @async
@@ -37,8 +79,20 @@ async function request(node, options, event) {
     headers: collectMetaHeaders(),
   };
 
+  const mxData = node.getAttribute(ATTRIBUTES.REQUEST_DATA);
+  const isFormFormat = mxData && mxData.startsWith('@form:');
+
   if (!['GET', 'HEAD'].includes(requestOptions.method)) {
-    if (node.tagName === 'FORM') {
+    if (isFormFormat) {
+      const format = mxData.split(':')[1];
+      const body = extractFormData(node, format);
+      if (body) {
+        requestOptions.body = body;
+        if (format === 'json') {
+          requestOptions.headers['Content-Type'] = 'application/json';
+        }
+      }
+    } else if (node.tagName === 'FORM') {
       const formData = new FormData(node);
       const params = new URLSearchParams();
       for (const pair of formData) {
@@ -69,6 +123,35 @@ async function request(node, options, event) {
  */
 async function triggerEvent(node, options, event) {
   return event;
+}
+
+/**
+ * Triggers a DOM event.
+ *
+ * @async
+ * @param {HTMLElement} node - The DOM element.
+ * @param {Object} options - Parsed event options.
+ * @param {Event} event - The original event.
+ * @returns {Promise<null>}
+ */
+async function trigger(node, options, event) {
+  const { presentation: eventName, target } = options || {};
+
+  if (!eventName || eventName.startsWith('@')) {
+    console.warn(`@trigger requires an event name (e.g., @trigger:submit). Found: "${eventName}"`);
+    return null;
+  }
+
+  const eventToTrigger = new Event(eventName, { bubbles: true, cancelable: true });
+  const targetElement = target ? document.querySelector(target) : node;
+
+  if (targetElement) {
+    targetElement.dispatchEvent(eventToTrigger);
+  } else {
+    console.warn(`@trigger target "${target}" not found`);
+  }
+
+  return null;
 }
 
 /**
@@ -452,6 +535,7 @@ async function sse(node, options, event) {
 export default {
   "@request": request,
   "@event": triggerEvent,
+  "@trigger": trigger,
   "@stream": stream,
   "@ws": ws,
   "@sse": sse,
