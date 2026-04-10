@@ -1,10 +1,10 @@
 //#region src/constants.js
 const ATTRIBUTES = {
-	CONTROLLER: "mt-controller",
-	REQUEST_METHOD: "mt-method",
-	REQUEST_PATH: "mt-path",
-	REQUEST_DATA: "mt-data",
-	HEADER_META: "mt-header",
+	CONTROLLER: "mx-controller",
+	REQUEST_METHOD: "mx-method",
+	REQUEST_PATH: "mx-path",
+	REQUEST_DATA: "mx-data",
+	HEADER_META: "mx-header",
 	EVENT_PREFIX: "mx-"
 };
 const MODIFIERS = {
@@ -175,7 +175,7 @@ async function stream(node, options, event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	const method = node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || "GET";
 	if (!url) {
-		console.error("@stream requires mt-path attribute");
+		console.error("@stream requires mx-path attribute");
 		return null;
 	}
 	const streamResponse = new StreamResponse();
@@ -359,7 +359,7 @@ var WebSocketClient = class {
 async function ws(node, options, event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	if (!url) {
-		console.error("@ws requires mt-path attribute");
+		console.error("@ws requires mx-path attribute");
 		return null;
 	}
 	if (node._wsClient) node._wsClient.close();
@@ -430,7 +430,7 @@ var SSEClient = class {
 async function sse(node, options, event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	if (!url) {
-		console.error("@sse requires mt-path attribute");
+		console.error("@sse requires mx-path attribute");
 		return null;
 	}
 	if (node._sseClient) node._sseClient.stop();
@@ -699,7 +699,7 @@ const OBSERVER_CONFIG = {
 };
 function initController(node, attrName) {
 	const controller$1 = node.getAttribute(attrName);
-	if (controller$1 && window[controller$1]) node.mtController = new window[controller$1](node);
+	if (controller$1 && window[controller$1]) node.mxController = new window[controller$1](node);
 }
 function processNode(node) {
 	if (!node.querySelectorAll) return;
