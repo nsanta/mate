@@ -55,7 +55,7 @@ async function prepend(node, response) {
 	node.insertAdjacentHTML("afterbegin", await response.text());
 }
 async function controller(node, response, func) {
-	node.mtController[func](response);
+	node.mxController[func](response);
 }
 const PRESENTERS = {
 	"@inner": inner,

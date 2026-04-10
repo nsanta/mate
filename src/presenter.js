@@ -32,7 +32,7 @@ async function prepend(node, response) {
 }
 
 async function controller(node, response, func) {
-  node.mtController[func](response);
+  node.mxController[func](response);
 }
 
 const PRESENTERS = {
@@ -68,7 +68,7 @@ export async function present(node, response, presentation, target, option) {
     await inner(node, response);
     return;
   }
-  
+
   // Default to @inner if no presentation is specified
   await inner(node, response);
 }

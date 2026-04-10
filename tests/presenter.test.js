@@ -64,7 +64,7 @@ describe('presenter', () => {
         const mockController = {
             update: vi.fn(),
         };
-        node.mtController = mockController;
+        node.mxController = mockController;
 
         await present(node, response, '@controller', 'update');
 
