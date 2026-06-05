@@ -2,21 +2,23 @@ import { attachEventHandler } from './events.js';
 import { ATTRIBUTES } from './constants.js';
 import { parseAllEventAttributes } from './parser.js';
 import capabilities from './capabilities.js';
+import controllers from './controllers.js';
 import { registerPresenter, getPresenter, hasPresenter } from './presenter.js';
 
-const OBSERVER_CONFIG = { childList: true, subtree: true, attributes: true };
+const OBSERVER_CONFIG = { childList: true, subtree: true };
 
 function initController(node, attrName) {
-  const controller = node.getAttribute(attrName);
-  if (controller && window[controller]) {
-    const controllerInstance = new window[controller](node);
-    node.mxController = controllerInstance;
+  const name = node.getAttribute(attrName);
+  if (!name) return;
+  const ControllerClass = controllers.resolve(name);
+  if (ControllerClass) {
+    node.mxController = new ControllerClass(node);
   }
 }
 
 function processNode(node) {
   if (!node.querySelectorAll) return;
-  
+
   node.querySelectorAll(`[${ATTRIBUTES.CONTROLLER}]`).forEach((subNode) => {
     initController(subNode, ATTRIBUTES.CONTROLLER);
   });
@@ -31,7 +33,7 @@ function processNode(node) {
 
   if (node.hasAttribute) {
     initController(node, ATTRIBUTES.CONTROLLER);
-    
+
     const parsedEvents = parseAllEventAttributes(node);
     parsedEvents.forEach((parsed) => {
       attachEventHandler(node, parsed);
@@ -40,8 +42,9 @@ function processNode(node) {
 }
 
 function processMutations(mutations) {
+  if (processMutations.disabled) return;
   mutations.forEach((mutation) => {
-    if (mutation.type !== "childList") { return; }
+    if (mutation.type !== 'childList') { return; }
     mutation.addedNodes.forEach((node) => {
       processNode(node);
     });
@@ -51,16 +54,26 @@ function processMutations(mutations) {
 function mate() {
   const observer = new MutationObserver(processMutations);
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document, OBSERVER_CONFIG);
     processNode(document);
   });
+
+  return function teardown() {
+    processMutations.disabled = true;
+    observer.disconnect();
+  };
 }
 
 mate.registerCapability = capabilities.register;
 mate.getCapability = capabilities.get;
 mate.hasCapability = capabilities.has;
 mate.removeCapability = capabilities.remove;
+mate.registerController = controllers.register;
+mate.getController = controllers.get;
+mate.hasController = controllers.has;
+mate.removeController = controllers.remove;
+mate.clearControllers = controllers.clear;
 mate.registerPresenter = registerPresenter;
 mate.getPresenter = getPresenter;
 mate.hasPresenter = hasPresenter;

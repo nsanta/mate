@@ -5,7 +5,7 @@ import { present } from './presenter.js';
  * Default configuration options for requests.
  * @constant {Object}
  */
-const DEFAULT_OPTIONS = { method: "GET" };
+const DEFAULT_OPTIONS = { method: 'GET' };
 
 function collectMetaHeaders() {
   const headers = {};
@@ -73,7 +73,7 @@ function extractFormData(node, format) {
  * @param {Event} event - The event that triggered the action.
  * @returns {Promise<Response>} The fetch response.
  */
-async function request(node, options, event) {
+async function request(node, _options, _event) {
   const requestOptions = {
     method: node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || DEFAULT_OPTIONS.method,
     headers: collectMetaHeaders(),
@@ -81,6 +81,12 @@ async function request(node, options, event) {
 
   const mxData = node.getAttribute(ATTRIBUTES.REQUEST_DATA);
   const isFormFormat = mxData && mxData.startsWith('@form:');
+
+  if (['GET', 'HEAD'].includes(requestOptions.method) && (mxData || isFormFormat)) {
+    console.warn(
+      `mx-data is ignored when method is ${requestOptions.method} (HTTP GET/HEAD must not have a body). Use POST/PUT/PATCH instead.`,
+    );
+  }
 
   if (!['GET', 'HEAD'].includes(requestOptions.method)) {
     if (isFormFormat) {
@@ -93,12 +99,7 @@ async function request(node, options, event) {
         }
       }
     } else if (node.tagName === 'FORM') {
-      const formData = new FormData(node);
-      const params = new URLSearchParams();
-      for (const pair of formData) {
-        params.append(pair[0], pair[1]);
-      }
-      requestOptions.body = params;
+      requestOptions.body = extractFormData(node, 'form');
     } else {
       const jsonData = JSON.parse(node.getAttribute(ATTRIBUTES.REQUEST_DATA) || '{}');
       requestOptions.body = JSON.stringify(jsonData);
@@ -106,10 +107,7 @@ async function request(node, options, event) {
     }
   }
 
-  return await fetch(
-    node.getAttribute(ATTRIBUTES.REQUEST_PATH),
-    requestOptions,
-  );
+  return await fetch(node.getAttribute(ATTRIBUTES.REQUEST_PATH), requestOptions);
 }
 
 /**
@@ -134,7 +132,7 @@ async function triggerEvent(node, options, event) {
  * @param {Event} event - The original event.
  * @returns {Promise<null>}
  */
-async function trigger(node, options, event) {
+async function trigger(node, options, _event) {
   const { presentation: eventName, target } = options || {};
 
   if (!eventName || eventName.startsWith('@')) {
@@ -186,7 +184,7 @@ class StreamResponse {
  * @param {Event} event - The event that triggered the action.
  * @returns {Promise<StreamResponse>} The stream response object.
  */
-async function stream(node, options, event) {
+async function stream(node, options, _event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
   const method = node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || 'GET';
 
@@ -267,31 +265,28 @@ async function stream(node, options, event) {
 /**
  * Helper function to update DOM with streamed content.
  */
-async function updateDOM(node, content, presentation, target, presentationOption, isUpdate = false) {
-  const targetElement = target ? (target.startsWith('#')
-    ? document.getElementById(target.slice(1))
-    : document.querySelector(target)) || node
-    : node;
-
-  if (!targetElement) {
-    console.warn('Target element not found');
-    return;
-  }
-
+async function updateDOM(
+  node,
+  content,
+  presentation,
+  target,
+  presentationOption,
+  isUpdate = false,
+) {
   switch (presentation) {
     case '@inner':
     case undefined:
       if (isUpdate) {
-        targetElement.innerHTML += content;
+        node.innerHTML += content;
       } else {
-        targetElement.innerHTML = content;
+        node.innerHTML = content;
       }
       break;
     case '@append':
-      targetElement.insertAdjacentHTML('beforeend', content);
+      node.insertAdjacentHTML('beforeend', content);
       break;
     case '@prepend':
-      targetElement.insertAdjacentHTML('afterbegin', content);
+      node.insertAdjacentHTML('afterbegin', content);
       break;
     case '@id':
       if (target) {
@@ -331,7 +326,7 @@ class WebSocketClient {
 
     this._manualClose = false;
     this.ws = new WebSocket(this.url);
-    this.ws.binaryType = "arraybuffer";
+    this.ws.binaryType = 'arraybuffer';
 
     this.ws.onopen = () => {
       this._resetBackoff();
@@ -340,14 +335,14 @@ class WebSocketClient {
 
     this.ws.onmessage = (ev) => {
       let data;
-      if (typeof ev.data === "string") {
+      if (typeof ev.data === 'string') {
         try {
           data = JSON.parse(ev.data);
         } catch {
           data = ev.data;
         }
       } else if (ev.data instanceof ArrayBuffer) {
-        data = { type: "binary", data: ev.data };
+        data = { type: 'binary', size: ev.data.byteLength };
       } else {
         data = ev.data;
       }
@@ -366,9 +361,8 @@ class WebSocketClient {
 
   _handleMessage(node, message, options) {
     const { presentation, target, presentationOption } = options || {};
-    const content = typeof message.data === 'object'
-      ? JSON.stringify(message.data)
-      : String(message.data);
+    const content =
+      typeof message.data === 'object' ? JSON.stringify(message.data) : String(message.data);
 
     updateDOM(node, content, presentation, target, presentationOption, true);
   }
@@ -397,7 +391,7 @@ class WebSocketClient {
 
   send(data) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(typeof data === "string" ? data : JSON.stringify(data));
+      this.ws.send(typeof data === 'string' ? data : JSON.stringify(data));
     }
   }
 
@@ -422,7 +416,7 @@ class WebSocketClient {
  * @param {Event} event - The event that triggered the action.
  * @returns {Promise<Object>} WebSocket client instance.
  */
-async function ws(node, options, event) {
+async function ws(node, options, _event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 
   if (!url) {
@@ -448,6 +442,7 @@ class SSEClient {
   constructor(url) {
     this.url = url;
     this._es = null;
+    this._manualClose = false;
     this._reconnectDelay = 1000;
     this._maxDelay = 30000;
     this._backoffGrow = 1.5;
@@ -455,6 +450,7 @@ class SSEClient {
 
   start(node, options) {
     this.stop();
+    this._manualClose = false;
 
     this._es = new EventSource(this.url);
 
@@ -468,14 +464,15 @@ class SSEClient {
       let data = ev.data;
       try {
         data = JSON.parse(data);
-      } catch {
+      } catch (_e) {
+        void _e;
       }
       const { presentation, target, presentationOption } = options || {};
       const content = typeof data === 'object' ? JSON.stringify(data) : String(data);
       updateDOM(node, content, presentation, target, presentationOption, true);
     };
 
-    this._es.onerror = (ev) => {
+    this._es.onerror = (_ev) => {
       this._scheduleReconnectIfNeeded(node, options);
       const { presentation, target, presentationOption } = options || {};
       updateDOM(node, 'Error connecting', presentation, target, presentationOption, true);
@@ -483,6 +480,7 @@ class SSEClient {
   }
 
   _scheduleReconnectIfNeeded(node, options) {
+    if (this._manualClose) return;
     const delay = Math.min(this._maxDelay, this._reconnectDelay);
     const jitter = delay * (Math.random() * 0.5 + 0.5);
     setTimeout(() => {
@@ -496,6 +494,7 @@ class SSEClient {
   }
 
   stop() {
+    this._manualClose = true;
     if (this._es) {
       this._es.close();
       this._es = null;
@@ -512,7 +511,7 @@ class SSEClient {
  * @param {Event} event - The event that triggered the action.
  * @returns {Promise<Object>} SSE client instance.
  */
-async function sse(node, options, event) {
+async function sse(node, options, _event) {
   const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 
   if (!url) {
@@ -531,12 +530,13 @@ async function sse(node, options, event) {
   return client;
 }
 
-
 export default {
-  "@request": request,
-  "@event": triggerEvent,
-  "@trigger": trigger,
-  "@stream": stream,
-  "@ws": ws,
-  "@sse": sse,
+  '@request': request,
+  '@event': triggerEvent,
+  '@passthrough': triggerEvent,
+  '@trigger': trigger,
+  '@dispatch': trigger,
+  '@stream': stream,
+  '@ws': ws,
+  '@sse': sse,
 };

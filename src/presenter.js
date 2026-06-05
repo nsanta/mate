@@ -1,5 +1,5 @@
-const INNER = 'inner';
 const OUTER = 'outer';
+const TEXT = 'text';
 
 async function inner(node, response) {
   node.innerHTML = await response.text();
@@ -9,16 +9,38 @@ async function outer(node, response) {
   node.outerHTML = await response.text();
 }
 
+async function text(node, response) {
+  node.textContent = await response.text();
+}
+
 async function byId(node, response, id, option) {
   const elementNode = document.getElementById(id);
-  if (option === OUTER) { outer(elementNode, response); return; }
-  inner(elementNode, response);
+  if (!elementNode) {
+    console.warn(`@id target "${id}" not found`);
+    return;
+  }
+  if (option === OUTER) {
+    await outer(elementNode, response);
+    return;
+  }
+  if (option === TEXT) {
+    await text(elementNode, response);
+    return;
+  }
+  await inner(elementNode, response);
 }
 
 async function byClass(node, response, klass, option) {
   const result = await response.text();
   Array.from(document.getElementsByClassName(klass)).forEach((element) => {
-    if (option === OUTER) { element.outerHTML = result; return; }
+    if (option === OUTER) {
+      element.outerHTML = result;
+      return;
+    }
+    if (option === TEXT) {
+      element.textContent = result;
+      return;
+    }
     element.innerHTML = result;
   });
 }
@@ -38,6 +60,7 @@ async function controller(node, response, func) {
 const PRESENTERS = {
   '@inner': inner,
   '@outer': outer,
+  '@text': text,
   '@id': byId,
   '@class': byClass,
   '@append': append,

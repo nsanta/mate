@@ -51,15 +51,15 @@ export async function executeActionOrCapability(parsedEvent, node, event) {
     response = await actions[action](node, parsedEvent, event);
   } else if (capability) {
     response = await executeCapability(capability, method, node, event, parsedEvent);
-  } else if (action === '@event') {
-    response = event;
   }
 
   if (response) {
     // Normalize response to ensure it has a .text() method for presenters
-    const normalizedResponse = (response instanceof Response || (typeof response === 'object' && response !== null && 'text' in response))
-      ? response
-      : { text: () => Promise.resolve(String(response)) };
+    const normalizedResponse =
+      response instanceof Response ||
+      (typeof response === 'object' && response !== null && 'text' in response)
+        ? response
+        : { text: () => Promise.resolve(String(response)) };
 
     await present(node, normalizedResponse, presentation, target, presentationOption);
   }

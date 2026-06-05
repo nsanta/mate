@@ -60,11 +60,13 @@ describe('@trigger action', () => {
 
   it('should warn and do nothing if no event name is provided', async () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    
+
     const parsedEvent = parseEventAttribute('mx-click', '@trigger');
     await executeActionOrCapability(parsedEvent, node, new Event('click'));
 
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('@trigger requires an event name'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('@trigger requires an event name'),
+    );
     consoleSpy.mockRestore();
   });
 
@@ -81,5 +83,54 @@ describe('@trigger action', () => {
     await executeActionOrCapability(parsedEvent, input, new Event('input'));
 
     expect(submitHandler).toHaveBeenCalled();
+  });
+
+  describe('@dispatch (alias for @trigger)', () => {
+    it('RED: should dispatch an event on the node itself', async () => {
+      const handler = vi.fn();
+      node.addEventListener('custom-event', handler);
+
+      const parsedEvent = parseEventAttribute('mx-click', '@dispatch:custom-event');
+      await executeActionOrCapability(parsedEvent, node, new Event('click'));
+
+      expect(handler).toHaveBeenCalled();
+      expect(handler.mock.calls[0][0].type).toBe('custom-event');
+    });
+
+    it('RED: should dispatch on a specific target by ID', async () => {
+      const target = document.createElement('div');
+      target.id = 'alias-target';
+      document.body.appendChild(target);
+
+      const handler = vi.fn();
+      target.addEventListener('alias-event', handler);
+
+      const parsedEvent = parseEventAttribute('mx-click', '@dispatch:alias-event:#alias-target');
+      await executeActionOrCapability(parsedEvent, node, new Event('click'));
+
+      expect(handler).toHaveBeenCalled();
+    });
+
+    it('RED: should warn when no event name provided', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const parsedEvent = parseEventAttribute('mx-click', '@dispatch');
+      await executeActionOrCapability(parsedEvent, node, new Event('click'));
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('@trigger requires an event name'),
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('RED: @trigger still works (backward compat)', async () => {
+      const handler = vi.fn();
+      node.addEventListener('legacy-event', handler);
+
+      const parsedEvent = parseEventAttribute('mx-click', '@trigger:legacy-event');
+      await executeActionOrCapability(parsedEvent, node, new Event('click'));
+
+      expect(handler).toHaveBeenCalled();
+    });
   });
 });

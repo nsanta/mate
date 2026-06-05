@@ -1,0 +1,9 @@
+dist
+node_modules
+coverage
+website
+docs
+server/public
+*.md
+package.json
+package-lock.json
