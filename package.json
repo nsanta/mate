@@ -32,6 +32,9 @@
     "vitest": "^4.0.10",
     "vue": "^3.5.34"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "version": "0.0.9",
   "description": "A lightweight, HTMX-inspired library for declarative interactions.",
   "main": "dist/main.js",
