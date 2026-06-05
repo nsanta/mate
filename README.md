@@ -7,9 +7,9 @@ A lightweight JavaScript library for declarative DOM interactions. `mate.js` all
 ### NPM
 
 ```javascript
-import mate from '@nsanta/mate/mate.js';
+import mate from '@nsanta/mate';
 
-mate();
+const teardown = mate();
 ```
 
 ### CDN
@@ -20,10 +20,9 @@ mate();
 
 ## Usage
 
-`mate.js` uses custom attributes to define interactions. There are two syntaxes available:
+`mate.js` uses custom attributes to define interactions:
 
-- **`mx-*` syntax** (recommended) - Event-centric shorthand with modifiers
-- **`mt-*` syntax** (legacy) - Original attribute-based syntax
+- **`mx-*` syntax** - Event-centric shorthand with modifiers
 
 ---
 
@@ -98,7 +97,9 @@ These headers will be automatically included in all `@request` and `@stream` act
 |--------|-------------|----------|
 | `@request` | Makes an HTTP request (GET, POST, etc.) | HTTP |
 | `@event` | Passes event through to controller | N/A |
+| `@passthrough` | Alias for `@event` | N/A |
 | `@trigger` | Dispatches a new DOM event | N/A |
+| `@dispatch` | Alias for `@trigger` | N/A |
 | `@stream` | Streams HTTP responses with real-time updates | HTTP |
 | `@ws` | Establishes WebSocket connection for bidirectional communication | WebSocket |
 | `@sse` | Establishes Server-Sent Events connection for real-time updates | SSE |
@@ -147,12 +148,33 @@ Modifiers are appended to the event name with dots:
 
 <!-- Trigger when clicking outside -->
 <div mx-click.outside="@request:@inner">Click outside me</div>
+
+<!-- Key name modifiers: only fire on specific keys -->
+<input mx-keydown.enter="@request:@inner" mx-path="/search">
+<input mx-keydown.esc="@request:@inner" mx-path="/clear">
+<input mx-keydown.tab="@request:@inner" mx-path="/next">
+<input mx-keydown.space="@request:@inner" mx-path="/toggle">
+
+<!-- System key modifiers: only fire when modifier key is held -->
+<input mx-keydown.ctrl="@request:@inner" mx-path="/save">
+<input mx-keydown.shift="@request:@inner" mx-path="/select">
+<input mx-keydown.alt="@request:@inner" mx-path="/alt">
+<input mx-keydown.meta="@request:@inner" mx-path="/meta">
+
+<!-- Combine key name + system key: Ctrl+Enter shortcut -->
+<input mx-keydown.enter.ctrl="@request:@inner" mx-path="/save">
+
+<!-- Mouse button modifiers -->
+<button mx-click.left="@request:@inner" mx-path="/action">Left click only</button>
+<button mx-click.middle="@request:@inner" mx-path="/middle">Middle click only</button>
+<button mx-click.right.prevent="@request:@inner" mx-path="/context">Right click only</button>
 ```
 
 | Modifier | Description |
 |----------|-------------|
 | `.prevent` | Calls `event.preventDefault()` |
 | `.stop` | Calls `event.stopPropagation()` |
+| `.stopImmediate` | Calls `event.stopImmediate()` (stops propagation AND prevents other handlers on same element) |
 | `.once` | Handler runs only once |
 | `.self` | Only triggers if event target is the element itself |
 | `.debounce` | Debounces handler (250ms default) |
@@ -164,6 +186,17 @@ Modifiers are appended to the event name with dots:
 | `.window` | Attach listener to window |
 | `.document` | Attach listener to document |
 | `.outside` | Trigger when clicking outside element |
+| `.enter` | Only trigger on Enter key |
+| `.tab` | Only trigger on Tab key |
+| `.esc` | Only trigger on Escape key |
+| `.space` | Only trigger on Space key |
+| `.ctrl` | Only trigger when Ctrl is held |
+| `.shift` | Only trigger when Shift is held |
+| `.alt` | Only trigger when Alt is held |
+| `.meta` | Only trigger when Meta (Cmd/Win) is held |
+| `.left` | Only trigger on left mouse button |
+| `.middle` | Only trigger on middle mouse button |
+| `.right` | Only trigger on right mouse button |
 
 ### Custom Capabilities
 
@@ -205,7 +238,7 @@ Use in HTML:
 
 ### Controllers
 
-For complex stateful behavior, use controllers:
+For complex stateful behavior, use controllers. Register the class with `mate.registerController()` so mate can resolve it without polluting the global scope:
 
 ```html
 <div mx-controller="Counter">
@@ -214,27 +247,33 @@ For complex stateful behavior, use controllers:
   <button mx-click="@event:@controller:decrement">-</button>
 </div>
 
-<script>
-class Counter {
-  constructor(element) {
-    this.element = element;
-    this.count = 0;
-    this.display = element.querySelector('#count');
+<script type="module">
+  import mate from '@nsanta/mate';
+
+  class Counter {
+    constructor(element) {
+      this.element = element;
+      this.count = 0;
+      this.display = element.querySelector('#count');
+    }
+
+    increment() {
+      this.count++;
+      this.display.textContent = this.count;
+    }
+
+    decrement() {
+      this.count--;
+      this.display.textContent = this.count;
+    }
   }
-  
-  increment() {
-    this.count++;
-    this.display.textContent = this.count;
-  }
-  
-  decrement() {
-    this.count--;
-    this.display.textContent = this.count;
-  }
-}
-window.Counter = Counter;
+
+  mate.registerController('Counter', Counter);
+  mate();
 </script>
 ```
+
+If a controller is not registered, mate falls back to `window[name]` for backward compatibility.
  
 ### Advanced Connectivity (`@stream`, `@ws`, `@sse`)
 
@@ -334,53 +373,7 @@ if (node && node._sseClient) {
 }
 ```
 
----
 
-## mt-* Syntax (Legacy)
-
-The original syntax is still supported for backward compatibility.
-
-### Triggers (`mt-on`)
-
-The `mt-on` attribute defines the event that triggers an action.
-Syntax: `mt-on="event:action"`
-
-Supported events:
-- `click`
-- `submit` (for forms)
-- `load`
-- `mouseover`
-- `mouseenter`
-- `mouseleave`
-
-Supported actions:
-- `@request`: Makes an HTTP request.
-- `@event`: Passes the event through (for controller handling).
-- `@stream`: Streams HTTP responses with real-time updates.
-- `@ws`: Establishes a WebSocket connection.
-- `@sse`: Establishes a Server-Sent Events connection.
-
-### Request Configuration
-
-Configure the HTTP request using the following attributes:
-
-- `mt-method`: The HTTP method to use (e.g., `GET`, `POST`). Defaults to `GET`.
-- `mt-path`: The URL path for the request.
-- `mt-data`: JSON string containing data to send with the request.
-
-### Presenters (`mt-pr`)
-
-The `mt-pr` attribute defines how the response from the action should be handled and presented in the DOM.
-Syntax: `mt-pr="action:target:option"`
-
-Supported presenter actions:
-- `@inner`: Replaces the `innerHTML` of the target element. (Default if `mt-pr` is missing)
-- `@outer`: Replaces the `outerHTML` of the target element.
-- `@id`: Updates an element by its ID. Syntax: `@id:elementId`.
-- `@class`: Updates elements by their class name. Syntax: `@class:className`.
-- `@append`: Appends content to the target.
-- `@prepend`: Prepends content to the target.
-- `@controller`: Calls a method on the element's controller.
 
 ---
 
@@ -389,13 +382,7 @@ Supported presenter actions:
 ### Basic Click Request
 
 ```html
-<!-- mx-* syntax (recommended) -->
 <button mx-click="@request:@inner" mx-path="/api/content">
-  Click me to load content
-</button>
-
-<!-- mt-* syntax (legacy) -->
-<button mt-on="click:@request" mt-path="/api/content">
   Click me to load content
 </button>
 ```
@@ -403,13 +390,7 @@ Supported presenter actions:
 ### Update Another Element by ID
 
 ```html
-<!-- mx-* syntax (recommended) -->
 <button mx-click="@request:@id:target-div" mx-path="/api/content">
-  Load into Target
-</button>
-
-<!-- mt-* syntax (legacy) -->
-<button mt-on="click:@request" mt-path="/api/content" mt-pr="@id:target-div">
   Load into Target
 </button>
 
@@ -419,17 +400,11 @@ Supported presenter actions:
 ### Form Submission
 
 ```html
-<!-- mx-* syntax -->
 <form mx-submit="@request:@inner" mx-method="POST" mx-path="/submit-form">
   <input type="text" name="username" />
   <button type="submit">Submit</button>
 </form>
-
-<!-- mt-* syntax (legacy) -->
-<form mt-on="submit:@request" mt-method="POST" mt-path="/submit-form">
-  <input type="text" name="username" />
-  <button type="submit">Submit</button>
-</form>
+```
 
 ### Dispatching Events (`@trigger`)
 
@@ -453,7 +428,6 @@ Use the `@trigger` action to dispatch DOM events. The first parameter is the eve
      mx-path="/pong">
   Waiting for ping...
 </div>
-```
 ```
 
 ### Authentication with Meta Headers
@@ -484,13 +458,7 @@ Configure authentication headers once in the `<head>` and they'll apply to all r
 ### Load Event
 
 ```html
-<!-- mx-* syntax -->
 <div mx-load="@request:@inner" mx-path="/initial-data">
-  Loading...
-</div>
-
-<!-- mt-* syntax (legacy) -->
-<div mt-on="load:@request" mt-path="/initial-data">
   Loading...
 </div>
 ```
@@ -521,68 +489,89 @@ The `mx-data` attribute can automatically extract data from the nearest ancestor
 
 **Note:** For `@form:json`, multiple inputs with the same name are automatically collected into an array.
 
----
-
-## Examples
+### Controller with Hover Events
 
 ```html
-<!-- mx-* syntax -->
 <div mx-controller="Tooltip" mx-mouseover="@event:@controller:show" mx-mouseleave="@event:@controller:hide">
   Hover me
 </div>
-
-<!-- mt-* syntax (legacy) -->
-<div mt-on="mouseover:@event" mt-controller="Tooltip" mt-pr="@controller:show">
-  Hover me
-</div>
-```
- 
-### HTTP Stream for Real-Time Updates
-
-```html
-<!-- mx-* syntax -->
-<button mx-click="@stream" mx-path="/stream">
-  Start Stream
-</button>
-<div id="stream-output">Waiting...</div>
-
-<!-- Stream and append each chunk -->
-<button mx-click="@stream:@append" mx-path="/stream">
-  Stream to Log
-</button>
-<div id="log">Messages will appear here</div>
 ```
 
-### WebSocket Connection
+---
 
-```html
-<!-- mx-* syntax -->
-<button mx-click="@ws" mx-path="ws://localhost:3001/ws">
-  Connect WebSocket
-</button>
-<div id="ws-output">Waiting for connection...</div>
+## Framework Integration
 
-<!-- Send message from JavaScript -->
-<button onclick="sendWSMessage()">Send Hello</button>
+mate.js can render framework components (React, Vue, Svelte) as presenters. Instead of replacing `innerHTML`, the response data is passed as props to your component.
 
-<script>
-  function sendWSMessage() {
-    const node = document.querySelector('[mx-click="@ws"]');
-    if (node && node._wsClient) {
-      node._wsClient.send({ message: 'Hello from client!' });
-    }
-  }
-</script>
+### Syntax
+
+```
+mx-{EVENT}="{ACTION}:{@react|@vue|@svelte}:{COMPONENT_NAME}"
 ```
 
-### Server-Sent Events
+### React
+
+Register components, then use `@react:ComponentName` as the presenter:
+
+```javascript
+import mate from '@nsanta/mate';
+import { registerComponent } from '@nsanta/mate/react';
+import ProfileCard from './ProfileCard.jsx';
+
+registerComponent('ProfileCard', ProfileCard);
+mate();
+```
 
 ```html
-<!-- mx-* syntax -->
-<button mx-click="@sse" mx-path="/sse">
-  Connect SSE
+<button mx-click="@request:@react:ProfileCard" mx-path="/api/profile">
+  Load Profile
 </button>
-<div id="sse-output">Waiting for connection...</div>
+```
+
+The `ProfileCard` component receives `{ data }` as a prop, where `data` is the parsed JSON response (or raw text if not JSON).
+
+### Vue
+
+```javascript
+import mate from '@nsanta/mate';
+import { registerComponent } from '@nsanta/mate/vue';
+import ProfileCard from './ProfileCard.vue';
+
+registerComponent('ProfileCard', ProfileCard);
+mate();
+```
+
+```html
+<button mx-click="@request:@vue:ProfileCard" mx-path="/api/profile">
+  Load Profile
+</button>
+```
+
+### Svelte
+
+```javascript
+import mate from '@nsanta/mate';
+import { registerComponent } from '@nsanta/mate/svelte';
+import ProfileCard from './ProfileCard.svelte';
+
+registerComponent('ProfileCard', ProfileCard);
+mate();
+```
+
+```html
+<button mx-click="@request:@svelte:ProfileCard" mx-path="/api/profile">
+  Load Profile
+</button>
+```
+
+### Streaming & Real-Time
+
+Framework presenters work with `@stream`, `@ws`, and `@sse` actions — each chunk or message re-renders the component with the latest data:
+
+```html
+<button mx-click="@stream:@react:LogViewer" mx-path="/api/logs">
+  Stream Logs
+</button>
 ```
 
 ---
@@ -591,11 +580,15 @@ The `mx-data` attribute can automatically extract data from the nearest ancestor
 
 ### `mate()`
 
-Initializes mate.js and starts observing the DOM.
+Initializes mate.js and starts observing the DOM. Returns a **teardown function** that disconnects the observer, removes the `DOMContentLoaded` listener, and runs all registered cleanups (closes any active streams, WebSockets, and SSE connections created by `@stream`/`@ws`/`@sse`).
 
 ```javascript
 import mate from '@nsanta/mate';
-mate();
+
+const teardown = mate();
+
+// Later, when you want to dispose of mate (e.g., navigating away in a SPA):
+teardown();
 ```
 
 ### `mate.registerCapability(name, handler)`
@@ -613,6 +606,36 @@ mate.registerCapability('MyCap', {
 mate.registerCapability('MyCap', (node, method, event, parsedEvent) => { ... });
 ```
 
+### `mate.getCapability(name)` / `mate.hasCapability(name)` / `mate.removeCapability(name)`
+
+Read and remove registered capabilities.
+
+```javascript
+const cap = mate.getCapability('MyCap');
+if (mate.hasCapability('MyCap')) { /* ... */ }
+mate.removeCapability('MyCap');
+```
+
+### `mate.registerController(name, ControllerClass)`
+
+Register a controller class so it can be resolved by `mx-controller="name"` without putting it on `window`.
+
+```javascript
+class Counter { /* ... */ }
+mate.registerController('Counter', Counter);
+```
+
+### `mate.getController(name)` / `mate.hasController(name)` / `mate.removeController(name)` / `mate.clearControllers()`
+
+Read and remove registered controllers.
+
+```javascript
+const Ctrl = mate.getController('Counter');
+if (mate.hasController('Counter')) { /* ... */ }
+mate.removeController('Counter');
+mate.clearControllers(); // remove all
+```
+
 ### `mate.registerPresenter(name, handler)`
 
 Register a custom presenter.
@@ -622,6 +645,34 @@ mate.registerPresenter('@custom', async (node, response, target, option) => {
   const text = await response.text();
   node.textContent = text.toUpperCase();
 });
+```
+
+### `mate.getPresenter(name)` / `mate.hasPresenter(name)`
+
+Read registered presenters.
+
+```javascript
+const p = mate.getPresenter('@custom');
+if (mate.hasPresenter('@custom')) { /* ... */ }
+```
+
+### Error Handling: the `mx-error` event
+
+When an `@request` action fails (network error, CORS, etc.), mate dispatches a `mx-error` `CustomEvent` on the triggering node with `{ error, url, method }` as `event.detail`. The handler returns `null`, so no DOM update happens.
+
+```html
+<button id="btn"
+        mx-click="@request:@inner"
+        mx-path="/api/might-fail">
+  Load
+</button>
+
+<script>
+  document.getElementById('btn').addEventListener('mx-error', (e) => {
+    console.error('Request to', e.detail.url, 'failed:', e.detail.error.message);
+    e.detail.target.innerHTML = '<span class="error">Failed to load</span>';
+  });
+</script>
 ```
 
 ---
