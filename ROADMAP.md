@@ -111,7 +111,7 @@ Adding support for real-time and streaming data.
 
 ---
 
-## Phase 6: Enhanced Features (Planned)
+## Phase 6: Enhanced Features ✅ Mostly Complete
 
 Additional features for improved developer experience.
 
@@ -120,18 +120,18 @@ Additional features for improved developer experience.
 - [ ] Support for multiple presenters chained together.
 
 ### Key Modifiers
-- [ ] `.enter`, `.tab`, `.esc`, `.space` key modifiers.
-- [ ] `.ctrl`, `.shift`, `.alt`, `.meta` system key modifiers.
-- [ ] `.left`, `.middle`, `.right` mouse button modifiers.
+- [x] `.enter`, `.tab`, `.esc`, `.space` key modifiers.
+- [x] `.ctrl`, `.shift`, `.alt`, `.meta` system key modifiers.
+- [x] `.left`, `.middle`, `.right` mouse button modifiers.
 
 ### Animation
 - [ ] Built-in transition/animation support when swapping content.
 - [ ] CSS class-based enter/leave animations.
 
 ### Framework Integration
-- [ ] React component wrapper.
-- [ ] Vue directive wrapper.
-- [ ] Svelte action wrapper.
+- [x] React component wrapper.
+- [x] Vue directive wrapper.
+- [x] Svelte action wrapper.
 
 ---
 
@@ -143,3 +143,51 @@ Tools to improve the development experience.
 - [ ] VS Code extension for attribute autocomplete.
 - [ ] TypeScript definitions.
 - [ ] Debug mode with verbose logging.
+
+---
+
+## Hardening Pass (✅ Complete)
+
+A multi-phase hardening pass was executed between Phase 5 and Phase 6 to take the library to production quality. All items below shipped.
+
+### Phase 1 — Surgical Bug Fixes ✅
+- [x] Fixed duplicate `STOP` modifier check.
+- [x] Removed `once` modifier dead code.
+- [x] Fixed `load` event bypassing modifiers.
+- [x] Added missing `await` in `presenter.byId`.
+- [x] Removed `updateDOM` dead-code path.
+- [x] Removed unused `attributes:true` in `MutationObserver` config.
+- [x] Added `.stopImmediate` modifier constant.
+
+### Phase 2 — Streaming & Real-Time Coverage ✅
+- [x] 60 new tests across `stream`, `sse`, `ws` (zero tests → comprehensive coverage).
+- [x] Fixed `SSE._manualClose` bug.
+- [x] Fixed WebSocket binary handling.
+- [x] Deduplicated form-serialization logic.
+
+### Phase 3 — Registry APIs + Aliases ✅
+- [x] `mate.registerController/getController/hasController/removeController/clearControllers`.
+- [x] `mate()` teardown function (closes streams, WebSockets, SSE; disconnects observer).
+- [x] Silent aliases: `@dispatch` → `@trigger`, `@passthrough` → `@event`.
+
+### Phase 4 — XSS Safety + GET Warning ✅
+- [x] XSS-safe `@text` presenter.
+- [x] `mx-data` ignored on GET/HEAD with console warning.
+
+### Phase 5 — Coverage 94% → 98% ✅
+- [x] 16 new tests across throttle wrapper, key modifiers, `load` event, etc.
+
+### Phase 6 — Tooling ✅
+- [x] ESLint v9 flat config.
+- [x] Prettier.
+- [x] GitHub Actions CI.
+- [x] Vitest coverage thresholds.
+
+### Phase 7 — Error Handling + Cleanup + Integration Tests ✅
+- [x] `mx-error` CustomEvent on `@request` failure (`{ error, url, method }`).
+- [x] Connection cleanup registry (`@stream`, `@ws`, `@sse` tear down correctly).
+- [x] 12 integration tests covering end-to-end flows.
+
+### Phase 8 — Architectural Cleanup ✅
+- [x] Removed legacy `mt-*` interface (parser, docs, README, Docusaurus).
+- [x] Aligned naming across docs and source.
