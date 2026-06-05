@@ -357,6 +357,84 @@ describe('actions', () => {
         consoleSpy.mockRestore();
       });
     });
+
+    describe('error handling (R3)', () => {
+      it('RED: catches network errors and returns null instead of throwing', async () => {
+        global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
+
+        const node = document.createElement('div');
+        node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+
+        const result = await request(node, {}, {});
+
+        expect(result).toBeNull();
+      });
+
+      it('RED: logs error to console with URL context', async () => {
+        global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        const node = document.createElement('div');
+        node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+
+        await request(node, {}, {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('/api/test'),
+          expect.anything(),
+        );
+        consoleSpy.mockRestore();
+      });
+
+      it('RED: dispatches mx-error event on the node with detail', async () => {
+        const fetchError = new Error('Network failure');
+        global.fetch = vi.fn().mockRejectedValue(fetchError);
+
+        const node = document.createElement('div');
+        document.body.appendChild(node);
+        node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+
+        const handler = vi.fn();
+        node.addEventListener('mx-error', handler);
+
+        await request(node, {}, {});
+
+        expect(handler).toHaveBeenCalledTimes(1);
+        const event = handler.mock.calls[0][0];
+        expect(event.type).toBe('mx-error');
+        expect(event.detail).toEqual({
+          error: fetchError,
+          url: '/api/test',
+          method: 'GET',
+        });
+        expect(event.bubbles).toBe(true);
+
+        document.body.removeChild(node);
+      });
+
+      it('RED: skips downstream presentation when fetch fails', async () => {
+        global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
+
+        const node = document.createElement('div');
+        document.body.appendChild(node);
+        node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/api/test');
+        node.innerHTML = 'original';
+
+        const parsedEvent = {
+          action: '@request',
+          presentation: '@inner',
+          target: null,
+          presentationOption: null,
+        };
+
+        const { executeActionOrCapability } = await import('../src/capabilities.js');
+        await executeActionOrCapability(parsedEvent, node, new Event('click'));
+
+        expect(node.innerHTML).toBe('original');
+
+        document.body.removeChild(node);
+      });
+    });
   });
 
   describe('@event', () => {

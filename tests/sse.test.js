@@ -236,4 +236,41 @@ describe('@sse action', () => {
       expect(client._reconnectDelay).toBeLessThan(10000);
     });
   });
+
+  describe('error closes EventSource to prevent native auto-reconnect (R2)', () => {
+    it('RED: onerror closes the EventSource to suppress browser auto-reconnect', async () => {
+      node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/sse');
+      await sse(node, { presentation: '@inner' }, {});
+
+      const es = MockEventSource.instances[0];
+      es._fireError();
+
+      expect(es.close).toHaveBeenCalled();
+    });
+
+    it('RED: onerror nullifies _es so native reconnect cannot fire events', async () => {
+      node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/sse');
+      const client = await sse(node, { presentation: '@inner' }, {});
+
+      MockEventSource.instances[0]._fireError();
+
+      expect(client._es).toBeNull();
+    });
+
+    it('after error, manual reconnect creates a NEW EventSource instance', async () => {
+      vi.useFakeTimers();
+      try {
+        node.setAttribute(ATTRIBUTES.REQUEST_PATH, '/sse');
+        await sse(node, { presentation: '@inner' }, {});
+
+        MockEventSource.instances[0]._fireError();
+        vi.advanceTimersByTime(60000);
+
+        expect(MockEventSource.instances.length).toBe(2);
+        expect(MockEventSource.instances[1]).not.toBe(MockEventSource.instances[0]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
 });

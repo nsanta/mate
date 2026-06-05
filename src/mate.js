@@ -4,6 +4,7 @@ import { parseAllEventAttributes } from './parser.js';
 import capabilities from './capabilities.js';
 import controllers from './controllers.js';
 import { registerPresenter, getPresenter, hasPresenter } from './presenter.js';
+import { runCleanups } from './cleanup.js';
 
 const OBSERVER_CONFIG = { childList: true, subtree: true };
 
@@ -52,16 +53,21 @@ function processMutations(mutations) {
 }
 
 function mate() {
+  processMutations.disabled = false;
   const observer = new MutationObserver(processMutations);
 
-  document.addEventListener('DOMContentLoaded', () => {
+  const onReady = () => {
     observer.observe(document, OBSERVER_CONFIG);
     processNode(document);
-  });
+  };
+
+  document.addEventListener('DOMContentLoaded', onReady);
 
   return function teardown() {
+    document.removeEventListener('DOMContentLoaded', onReady);
     processMutations.disabled = true;
     observer.disconnect();
+    runCleanups();
   };
 }
 
