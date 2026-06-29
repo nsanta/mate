@@ -99,6 +99,19 @@ function getEventTarget(node, modifiers) {
   return node;
 }
 
+/**
+ * Resolve the native DOM event name to listen to.
+ * In real browsers, right-click fires 'contextmenu' and middle-click fires
+ * 'auxclick' — not 'click'. When mx-click is used with .right or .middle we
+ * must subscribe to those events instead.
+ */
+function resolveNativeEvent(eventName, modifiers) {
+  if (eventName !== 'click') return eventName;
+  if (modifiers.includes(MODIFIERS.RIGHT)) return 'contextmenu';
+  if (modifiers.includes(MODIFIERS.MIDDLE)) return 'auxclick';
+  return eventName;
+}
+
 export async function attachEventHandler(node, parsedEvent) {
   const { event, modifiers } = parsedEvent;
 
@@ -146,8 +159,9 @@ export async function attachEventHandler(node, parsedEvent) {
 
   const target = getEventTarget(node, modifiers);
   const eventHandler = (e) => wrappedHandler(e, node);
+  const nativeEvent = resolveNativeEvent(event, modifiers);
 
-  target.addEventListener(event, eventHandler, {
+  target.addEventListener(nativeEvent, eventHandler, {
     ...commonOptions,
     once: modifiers.includes(MODIFIERS.ONCE),
   });

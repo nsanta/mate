@@ -13,7 +13,11 @@ function createKeyboardEvent(key, props = {}) {
 }
 
 function createMouseEvent(button, props = {}) {
-  const event = new MouseEvent('click', { button, ...props });
+  // Real browsers fire 'click' only for left (0), 'auxclick' for middle (1),
+  // and 'contextmenu' for right (2).
+  const typeMap = { 0: 'click', 1: 'auxclick', 2: 'contextmenu' };
+  const type = typeMap[button] ?? 'click';
+  const event = new MouseEvent(type, { button, ...props });
   return event;
 }
 
@@ -251,11 +255,11 @@ describe('mouse button modifiers', () => {
     const parsedEvent = parseEventAttribute('mx-click', '@request:@inner');
     await attachEventHandler(node, parsedEvent);
 
+    // Without modifiers, only the 'click' event is listened to, which the
+    // browser fires for left-clicks only. Middle and right use their own events.
     node.dispatchEvent(createMouseEvent(0));
-    node.dispatchEvent(createMouseEvent(1));
-    node.dispatchEvent(createMouseEvent(2));
 
-    expect(executeActionOrCapability).toHaveBeenCalledTimes(3);
+    expect(executeActionOrCapability).toHaveBeenCalledTimes(1);
   });
 
   it('should parse mouse button modifier from attribute correctly', () => {

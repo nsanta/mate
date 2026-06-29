@@ -37,7 +37,7 @@
   "engines": {
     "node": ">=18"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight, HTMX-inspired library for declarative interactions.",
   "files": ["dist", "src"],
   "main": "dist/main.js",
