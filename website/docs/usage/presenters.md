@@ -4,26 +4,29 @@ sidebar_position: 3
 
 # Presenters
 
-Presenters determine how the response from an action is displayed or handled. You define a presenter using the `mt-pr` attribute.
+Presenters determine how the response from an action is displayed or handled. In the event-centric syntax, you define a presenter by appending it directly to the action in the `mx-{event}` attribute, separated by a colon.
 
 ## Syntax
 
 ```html
-mt-pr="<action>:<target>:<option>"
+mx-{event}="<action>:<presenter>[:<target>[:<option>]]"
 ```
 
-- **action**: The presenter logic (e.g., `@inner`, `@outer`, `@id`).
-- **target**: (Optional) The target element ID or class name.
+- **action**: The action to perform (e.g., `@request`).
+- **presenter**: The presenter logic to use (e.g., `@inner`, `@outer`, `@id`, `@class`, `@append`, `@prepend`, `@controller`).
+- **target**: (Optional) The target element ID, class, or method depending on the presenter.
 - **option**: (Optional) Additional options like `inner` or `outer` for specific presenters.
+
+---
 
 ## Available Presenters
 
-### `@inner` (Default)
+### `@inner`
 
 Updates the `innerHTML` of the triggering element.
 
 ```html
-<div mt-on="load:@request" mt-path="/content" mt-pr="@inner"></div>
+<div mx-load="@request:@inner" mx-path="/content"></div>
 ```
 
 ### `@outer`
@@ -31,7 +34,7 @@ Updates the `innerHTML` of the triggering element.
 Updates the `outerHTML` of the triggering element (replacing the element itself).
 
 ```html
-<div mt-on="click:@request" mt-path="/new-button" mt-pr="@outer">
+<div mx-click="@request:@outer" mx-path="/new-button">
   Click to replace me
 </div>
 ```
@@ -41,7 +44,7 @@ Updates the `outerHTML` of the triggering element (replacing the element itself)
 Appends the response content to the end of the triggering element.
 
 ```html
-<ul mt-on="click:@request" mt-path="/item" mt-pr="@append">
+<ul mx-click="@request:@append" mx-path="/item">
   <li>Existing Item</li>
 </ul>
 ```
@@ -51,7 +54,7 @@ Appends the response content to the end of the triggering element.
 Prepends the response content to the beginning of the triggering element.
 
 ```html
-<div mt-on="click:@request" mt-path="/alert" mt-pr="@prepend">
+<div mx-click="@request:@prepend" mx-path="/alert">
   <!-- Alert will appear here -->
   <p>Content</p>
 </div>
@@ -62,22 +65,26 @@ Prepends the response content to the beginning of the triggering element.
 Updates another element specified by its ID.
 
 ```html
-<button mt-on="click:@request" mt-path="/info" mt-pr="@id:info-box">
+<button mx-click="@request:@id:info-box" mx-path="/info">
   Load Info
 </button>
 
 <div id="info-box"></div>
 ```
 
-You can also specify whether to update inner or outer HTML:
-`mt-pr="@id:info-box:outer"`
+You can also specify whether to update inner or outer HTML as an option (defaults to `inner`):
+```html
+<button mx-click="@request:@id:info-box:outer" mx-path="/info">
+  Load Info (Replace Node)
+</button>
+```
 
 ### `@class`
 
 Updates all elements with a specific class.
 
 ```html
-<button mt-on="click:@request" mt-path="/update" mt-pr="@class:status-label">
+<button mx-click="@request:@class:status-label" mx-path="/update">
   Update All Statuses
 </button>
 
@@ -91,9 +98,8 @@ Passes the response to a method on the element's controller.
 
 ```html
 <div 
-  mt-controller="MyController" 
-  mt-on="click:@request" 
-  mt-path="/data" 
-  mt-pr="@controller:handleData"
+  mx-controller="MyController" 
+  mx-click="@request:@controller:handleData" 
+  mx-path="/data"
 ></div>
 ```

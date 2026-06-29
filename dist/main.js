@@ -1,3 +1,4 @@
+import { i as registerPresenter, n as hasPresenter, r as present, t as getPresenter } from "./presenter-BkdNu_2s.js";
 //#region src/constants.js
 const ATTRIBUTES = {
 	CONTROLLER: "mx-controller",
@@ -10,6 +11,7 @@ const ATTRIBUTES = {
 const MODIFIERS = {
 	PREVENT: "prevent",
 	STOP: "stop",
+	STOP_IMMEDIATE: "stopImmediate",
 	ONCE: "once",
 	SELF: "self",
 	DEBOUNCE: "debounce",
@@ -18,83 +20,38 @@ const MODIFIERS = {
 	PASSIVE: "passive",
 	WINDOW: "window",
 	DOCUMENT: "document",
-	OUTSIDE: "outside"
+	OUTSIDE: "outside",
+	ENTER: "enter",
+	TAB: "tab",
+	ESC: "esc",
+	SPACE: "space",
+	CTRL: "ctrl",
+	SHIFT: "shift",
+	ALT: "alt",
+	META: "meta",
+	LEFT: "left",
+	MIDDLE: "middle",
+	RIGHT: "right"
 };
-
-//#endregion
-//#region src/presenter.js
-const OUTER = "outer";
-async function inner(node, response) {
-	node.innerHTML = await response.text();
-}
-async function outer(node, response) {
-	node.outerHTML = await response.text();
-}
-async function byId(node, response, id, option) {
-	const elementNode = document.getElementById(id);
-	if (option === OUTER) {
-		outer(elementNode, response);
-		return;
-	}
-	inner(elementNode, response);
-}
-async function byClass(node, response, klass, option) {
-	const result = await response.text();
-	Array.from(document.getElementsByClassName(klass)).forEach((element) => {
-		if (option === OUTER) {
-			element.outerHTML = result;
-			return;
-		}
-		element.innerHTML = result;
-	});
-}
-async function append(node, response) {
-	node.insertAdjacentHTML("beforeend", await response.text());
-}
-async function prepend(node, response) {
-	node.insertAdjacentHTML("afterbegin", await response.text());
-}
-async function controller(node, response, func) {
-	node.mxController[func](response);
-}
-const PRESENTERS = {
-	"@inner": inner,
-	"@outer": outer,
-	"@id": byId,
-	"@class": byClass,
-	"@append": append,
-	"@prepend": prepend,
-	"@controller": controller
+const KEY_MAP = {
+	enter: "Enter",
+	tab: "Tab",
+	esc: "Escape",
+	space: " "
 };
-function registerPresenter(name, handler) {
-	PRESENTERS[name] = handler;
-}
-function getPresenter(name) {
-	return PRESENTERS[name];
-}
-function hasPresenter(name) {
-	return name in PRESENTERS;
-}
-async function present(node, response, presentation, target, option) {
-	if (presentation) {
-		const presenter = PRESENTERS[presentation];
-		if (presenter) {
-			await presenter(node, response, target, option);
-			return;
-		}
-		console.warn(`Presenter "${presentation}" not found`);
-		await inner(node, response);
-		return;
-	}
-	await inner(node, response);
-}
-
+const SYSTEM_KEYS = {
+	ctrl: "ctrlKey",
+	shift: "shiftKey",
+	alt: "altKey",
+	meta: "metaKey"
+};
+const MOUSE_BUTTONS = {
+	left: 0,
+	middle: 1,
+	right: 2
+};
 //#endregion
-//#region src/actions.js
-/**
-* Default configuration options for requests.
-* @constant {Object}
-*/
+//#region src/request.js
 const DEFAULT_OPTIONS = { method: "GET" };
 function collectMetaHeaders() {
 	const headers = {};
@@ -105,13 +62,6 @@ function collectMetaHeaders() {
 	});
 	return headers;
 }
-/**
-* Helper to extract form data in various formats.
-*
-* @param {HTMLElement} node - The element triggering the request.
-* @param {string} format - The desired format (json, multipart, form).
-* @returns {FormData|URLSearchParams|string|null} The extracted body content.
-*/
 function extractFormData(node, format) {
 	const form = node instanceof HTMLFormElement ? node : node.closest("form");
 	if (!form) {
@@ -131,22 +81,14 @@ function extractFormData(node, format) {
 	}
 	return null;
 }
-/**
-* Performs an HTTP request based on element's attributes.
-*
-* @async
-* @param {HTMLElement} node - The DOM element triggering the request.
-* @param {Object} options - Additional options for request.
-* @param {Event} event - The event that triggered the action.
-* @returns {Promise<Response>} The fetch response.
-*/
-async function request(node, options, event) {
+async function request(node, _options, _event) {
 	const requestOptions = {
 		method: node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || DEFAULT_OPTIONS.method,
 		headers: collectMetaHeaders()
 	};
 	const mxData = node.getAttribute(ATTRIBUTES.REQUEST_DATA);
 	const isFormFormat = mxData && mxData.startsWith("@form:");
+	if (["GET", "HEAD"].includes(requestOptions.method) && mxData) console.warn(`mx-data is ignored when method is ${requestOptions.method} (HTTP GET/HEAD must not have a body). Use POST/PUT/PATCH instead.`);
 	if (!["GET", "HEAD"].includes(requestOptions.method)) if (isFormFormat) {
 		const format = mxData.split(":")[1];
 		const body = extractFormData(node, format);
@@ -154,40 +96,35 @@ async function request(node, options, event) {
 			requestOptions.body = body;
 			if (format === "json") requestOptions.headers["Content-Type"] = "application/json";
 		}
-	} else if (node.tagName === "FORM") {
-		const formData = new FormData(node);
-		const params = new URLSearchParams();
-		for (const pair of formData) params.append(pair[0], pair[1]);
-		requestOptions.body = params;
-	} else {
+	} else if (node.tagName === "FORM") requestOptions.body = extractFormData(node, "form");
+	else {
 		const jsonData = JSON.parse(node.getAttribute(ATTRIBUTES.REQUEST_DATA) || "{}");
 		requestOptions.body = JSON.stringify(jsonData);
 		requestOptions.headers["Content-Type"] = "application/json";
 	}
-	return await fetch(node.getAttribute(ATTRIBUTES.REQUEST_PATH), requestOptions);
+	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
+	try {
+		return await fetch(url, requestOptions);
+	} catch (error) {
+		console.error(`@request to "${url}" failed:`, error.message);
+		node.dispatchEvent(new CustomEvent("mx-error", {
+			detail: {
+				error,
+				url,
+				method: requestOptions.method
+			},
+			bubbles: true,
+			cancelable: true
+		}));
+		return null;
+	}
 }
-/**
-* Triggers a custom event or simply passes the event through.
-*
-* @async
-* @param {HTMLElement} node - The DOM element.
-* @param {Object} options - Options for the event.
-* @param {Event} event - The original event.
-* @returns {Promise<Event>} The event object.
-*/
-async function triggerEvent(node, options, event) {
+//#endregion
+//#region src/dispatch.js
+async function triggerEvent(_node, _options, event) {
 	return event;
 }
-/**
-* Triggers a DOM event.
-*
-* @async
-* @param {HTMLElement} node - The DOM element.
-* @param {Object} options - Parsed event options.
-* @param {Event} event - The original event.
-* @returns {Promise<null>}
-*/
-async function trigger(node, options, event) {
+async function trigger(node, options, _event) {
 	const { presentation: eventName, target } = options || {};
 	if (!eventName || eventName.startsWith("@")) {
 		console.warn(`@trigger requires an event name (e.g., @trigger:submit). Found: "${eventName}"`);
@@ -202,9 +139,51 @@ async function trigger(node, options, event) {
 	else console.warn(`@trigger target "${target}" not found`);
 	return null;
 }
-/**
-* Streaming response class that mimics Response interface for presenter compatibility.
-*/
+//#endregion
+//#region src/cleanup.js
+const cleanups = [];
+function registerCleanup(fn) {
+	cleanups.push(fn);
+}
+function runCleanups() {
+	while (cleanups.length) {
+		const fn = cleanups.pop();
+		try {
+			fn();
+		} catch (e) {
+			console.error("Cleanup failed:", e);
+		}
+	}
+}
+//#endregion
+//#region src/update-dom.js
+async function updateDOM(node, content, presentation, target, presentationOption, isUpdate = false) {
+	if (!isUpdate) {
+		await present(node, { text: () => Promise.resolve(content) }, presentation, target, presentationOption);
+		return;
+	}
+	switch (presentation) {
+		case "@inner":
+		case void 0:
+			node.innerHTML += content;
+			break;
+		case "@append":
+			node.insertAdjacentHTML("beforeend", content);
+			break;
+		case "@prepend":
+			node.insertAdjacentHTML("afterbegin", content);
+			break;
+		case "@id":
+			if (target) {
+				const elem = document.getElementById(target);
+				if (elem) elem.innerHTML += content;
+			}
+			break;
+		default: if (presentation && presentation.startsWith("@")) await present(node, { text: () => Promise.resolve(content) }, presentation, target, presentationOption);
+	}
+}
+//#endregion
+//#region src/stream.js
 var StreamResponse = class {
 	constructor() {
 		this.chunks = [];
@@ -221,16 +200,7 @@ var StreamResponse = class {
 		this.isComplete = true;
 	}
 };
-/**
-* Performs an HTTP Stream request for real-time updates.
-*
-* @async
-* @param {HTMLElement} node - The DOM element triggering the stream.
-* @param {Object} options - Additional options (presentation, target, etc.).
-* @param {Event} event - The event that triggered the action.
-* @returns {Promise<StreamResponse>} The stream response object.
-*/
-async function stream(node, options, event) {
+async function stream(node, options, _event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	const method = node.getAttribute(ATTRIBUTES.REQUEST_METHOD) || "GET";
 	if (!url) {
@@ -240,6 +210,7 @@ async function stream(node, options, event) {
 	const streamResponse = new StreamResponse();
 	const abortController = new AbortController();
 	node._streamAbortController = abortController;
+	registerCleanup(() => abortController.abort());
 	try {
 		const response = await fetch(url, {
 			method,
@@ -284,40 +255,8 @@ async function stream(node, options, event) {
 	}
 	return streamResponse;
 }
-/**
-* Helper function to update DOM with streamed content.
-*/
-async function updateDOM(node, content, presentation, target, presentationOption, isUpdate = false) {
-	const targetElement = target ? (target.startsWith("#") ? document.getElementById(target.slice(1)) : document.querySelector(target)) || node : node;
-	if (!targetElement) {
-		console.warn("Target element not found");
-		return;
-	}
-	switch (presentation) {
-		case "@inner":
-		case void 0:
-			if (isUpdate) targetElement.innerHTML += content;
-			else targetElement.innerHTML = content;
-			break;
-		case "@append":
-			targetElement.insertAdjacentHTML("beforeend", content);
-			break;
-		case "@prepend":
-			targetElement.insertAdjacentHTML("afterbegin", content);
-			break;
-		case "@id":
-			if (target) {
-				const elem = document.getElementById(target);
-				if (elem) if (isUpdate) elem.innerHTML += content;
-				else elem.innerHTML = content;
-			}
-			break;
-		default: if (presentation && presentation.startsWith("@")) await present(node, { text: () => Promise.resolve(content) }, presentation, target, presentationOption);
-	}
-}
-/**
-* WebSocket client for bidirectional communication.
-*/
+//#endregion
+//#region src/ws.js
 var WebSocketClient = class {
 	constructor(url) {
 		this.url = url;
@@ -348,7 +287,7 @@ var WebSocketClient = class {
 			}
 			else if (ev.data instanceof ArrayBuffer) data = {
 				type: "binary",
-				data: ev.data
+				size: ev.data.byteLength
 			};
 			else data = ev.data;
 			this._handleMessage(node, {
@@ -406,16 +345,7 @@ var WebSocketClient = class {
 		}
 	}
 };
-/**
-* Establishes a WebSocket connection for bidirectional communication.
-*
-* @async
-* @param {HTMLElement} node - The DOM element.
-* @param {Object} options - Presentation options.
-* @param {Event} event - The event that triggered the action.
-* @returns {Promise<Object>} WebSocket client instance.
-*/
-async function ws(node, options, event) {
+async function ws(node, options, _event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	if (!url) {
 		console.error("@ws requires mx-path attribute");
@@ -425,21 +355,23 @@ async function ws(node, options, event) {
 	const client = new WebSocketClient(url);
 	node._wsClient = client;
 	client.connect(node, options);
+	registerCleanup(() => client.close());
 	return client;
 }
-/**
-* SSE client for server-sent events.
-*/
+//#endregion
+//#region src/sse.js
 var SSEClient = class {
 	constructor(url) {
 		this.url = url;
 		this._es = null;
+		this._manualClose = false;
 		this._reconnectDelay = 1e3;
 		this._maxDelay = 3e4;
 		this._backoffGrow = 1.5;
 	}
 	start(node, options) {
 		this.stop();
+		this._manualClose = false;
 		this._es = new EventSource(this.url);
 		this._es.onopen = () => {
 			this._resetBackoff();
@@ -450,17 +382,22 @@ var SSEClient = class {
 			let data = ev.data;
 			try {
 				data = JSON.parse(data);
-			} catch {}
+			} catch (_e) {}
 			const { presentation, target, presentationOption } = options || {};
 			updateDOM(node, typeof data === "object" ? JSON.stringify(data) : String(data), presentation, target, presentationOption, true);
 		};
-		this._es.onerror = (ev) => {
+		this._es.onerror = () => {
+			if (this._es) {
+				this._es.close();
+				this._es = null;
+			}
 			this._scheduleReconnectIfNeeded(node, options);
 			const { presentation, target, presentationOption } = options || {};
 			updateDOM(node, "Error connecting", presentation, target, presentationOption, true);
 		};
 	}
 	_scheduleReconnectIfNeeded(node, options) {
+		if (this._manualClose) return;
 		const jitter = Math.min(this._maxDelay, this._reconnectDelay) * (Math.random() * .5 + .5);
 		setTimeout(() => {
 			this._reconnectDelay = Math.min(this._maxDelay, this._reconnectDelay * this._backoffGrow);
@@ -471,22 +408,14 @@ var SSEClient = class {
 		this._reconnectDelay = Math.max(1e3, this._reconnectDelay / this._backoffGrow);
 	}
 	stop() {
+		this._manualClose = true;
 		if (this._es) {
 			this._es.close();
 			this._es = null;
 		}
 	}
 };
-/**
-* Establishes a Server-Sent Events connection for real-time updates.
-*
-* @async
-* @param {HTMLElement} node - The DOM element.
-* @param {Object} options - Presentation options.
-* @param {Event} event - The event that triggered the action.
-* @returns {Promise<Object>} SSE client instance.
-*/
-async function sse(node, options, event) {
+async function sse(node, options, _event) {
 	const url = node.getAttribute(ATTRIBUTES.REQUEST_PATH);
 	if (!url) {
 		console.error("@sse requires mx-path attribute");
@@ -496,17 +425,21 @@ async function sse(node, options, event) {
 	const client = new SSEClient(url);
 	node._sseClient = client;
 	client.start(node, options);
+	registerCleanup(() => client.stop());
 	return client;
 }
+//#endregion
+//#region src/actions.js
 var actions_default = {
 	"@request": request,
 	"@event": triggerEvent,
+	"@passthrough": triggerEvent,
 	"@trigger": trigger,
+	"@dispatch": trigger,
 	"@stream": stream,
 	"@ws": ws,
 	"@sse": sse
 };
-
 //#endregion
 //#region src/capabilities.js
 const capabilities = /* @__PURE__ */ new Map();
@@ -541,7 +474,6 @@ async function executeActionOrCapability(parsedEvent, node, event) {
 	let response = null;
 	if (action && actions_default[action]) response = await actions_default[action](node, parsedEvent, event);
 	else if (capability) response = await executeCapability(capability, method, node, event, parsedEvent);
-	else if (action === "@event") response = event;
 	if (response) await present(node, response instanceof Response || typeof response === "object" && response !== null && "text" in response ? response : { text: () => Promise.resolve(String(response)) }, presentation, target, presentationOption);
 	return response;
 }
@@ -554,14 +486,12 @@ var capabilities_default = {
 	execute: executeCapability,
 	executeActionOrCapability
 };
-
 //#endregion
 //#region src/events.js
-const DUMMY_EVENT = new Event("__dummy__");
 function applyModifiers(event, modifiers) {
 	if (modifiers.includes(MODIFIERS.PREVENT)) event.preventDefault();
 	if (modifiers.includes(MODIFIERS.STOP)) event.stopPropagation();
-	if (modifiers.includes(MODIFIERS.STOP)) event.stopImmediatePropagation();
+	if (modifiers.includes(MODIFIERS.STOP_IMMEDIATE)) event.stopImmediatePropagation();
 }
 function createDebouncedHandler(handler, wait) {
 	let timeoutId = null;
@@ -581,16 +511,34 @@ function createThrottledHandler(handler, wait) {
 	};
 }
 function wrapHandlerWithModifiers(handler, parsedEvent) {
-	const { modifiers, debounceMs, throttleMs } = parsedEvent;
+	const { event: eventName, modifiers, debounceMs, throttleMs } = parsedEvent;
 	let wrappedHandler = handler;
 	if (debounceMs) wrappedHandler = createDebouncedHandler(wrappedHandler, debounceMs);
 	if (throttleMs) wrappedHandler = createThrottledHandler(wrappedHandler, throttleMs);
 	return async (event, node) => {
+		if (eventName === "submit") event.preventDefault();
 		applyModifiers(event, modifiers);
 		if (modifiers.includes(MODIFIERS.SELF) && event.target !== node) return;
-		if (modifiers.includes(MODIFIERS.ONCE)) node.removeEventListener(parsedEvent.event, wrappedHandler);
+		if (!matchesKeyModifiers(event, modifiers)) return;
+		if (!matchesSystemKeyModifiers(event, modifiers)) return;
+		if (!matchesMouseModifiers(event, modifiers)) return;
 		return wrappedHandler(event, node);
 	};
+}
+function matchesKeyModifiers(event, modifiers) {
+	const active = modifiers.filter((m) => m in KEY_MAP);
+	if (active.length === 0) return true;
+	return active.some((m) => event.key === KEY_MAP[m]);
+}
+function matchesSystemKeyModifiers(event, modifiers) {
+	const active = modifiers.filter((m) => m in SYSTEM_KEYS);
+	if (active.length === 0) return true;
+	return active.every((m) => event[SYSTEM_KEYS[m]]);
+}
+function matchesMouseModifiers(event, modifiers) {
+	const active = modifiers.filter((m) => m in MOUSE_BUTTONS);
+	if (active.length === 0) return true;
+	return active.some((m) => event.button === MOUSE_BUTTONS[m]);
 }
 function getEventTarget(node, modifiers) {
 	if (modifiers.includes(MODIFIERS.WINDOW)) return window;
@@ -603,7 +551,27 @@ async function attachEventHandler(node, parsedEvent) {
 		return await executeActionOrCapability(parsedEvent, node, originalEvent);
 	};
 	const wrappedHandler = wrapHandlerWithModifiers(handler, parsedEvent);
-	if (event === "load") return wrappedHandler(DUMMY_EVENT, node);
+	if (event === "load") {
+		if (modifiers.includes(MODIFIERS.WINDOW) || modifiers.includes(MODIFIERS.DOCUMENT)) {
+			const target = getEventTarget(node, modifiers);
+			const loadHandler = () => {
+				const fakeEvent = new Event("load");
+				Object.defineProperty(fakeEvent, "target", {
+					value: node,
+					configurable: true
+				});
+				wrappedHandler(fakeEvent, node);
+			};
+			target.addEventListener("load", loadHandler, { once: modifiers.includes(MODIFIERS.ONCE) });
+			return;
+		}
+		const fakeEvent = new Event("load");
+		Object.defineProperty(fakeEvent, "target", {
+			value: node,
+			configurable: true
+		});
+		return wrappedHandler(fakeEvent, node);
+	}
 	const commonOptions = {
 		capture: modifiers.includes(MODIFIERS.CAPTURE),
 		passive: modifiers.includes(MODIFIERS.PASSIVE)
@@ -625,14 +593,13 @@ async function attachEventHandler(node, parsedEvent) {
 		once: modifiers.includes(MODIFIERS.ONCE)
 	});
 }
-
 //#endregion
 //#region src/parser.js
 /**
 * Parser for mx-* event-centric shorthand syntax.
-* 
+*
 * Syntax: mx-{EVENT}[.modifiers]="{ACTION|CAPABILITY.method}[:{PRESENTATION}[:{TARGET}]]"
-* 
+*
 * Examples:
 *   mx-click="@request:@inner"
 *   mx-click="@request:@id:target-div"
@@ -657,13 +624,13 @@ async function attachEventHandler(node, parsedEvent) {
 */
 /**
 * Parse an mx-* attribute name and value into a structured object.
-* 
+*
 * @param {string} attrName - The attribute name (e.g., "mx-click.prevent")
 * @param {string} attrValue - The attribute value (e.g., "@request:@id:target")
 * @returns {ParsedEvent|null} Parsed event configuration or null if invalid
 */
 function parseEventAttribute(attrName, attrValue) {
-	const nameMatch = attrName.match(/^mx-(\w+)(?:\.(.*))?$/);
+	const nameMatch = attrName.match(/^mx-([\w-]+)(?:\.(.*))?$/);
 	if (!nameMatch) return null;
 	const [, event, modifiersStr] = nameMatch;
 	let debounceMs = null;
@@ -718,16 +685,16 @@ function parseEventAttribute(attrName, attrValue) {
 }
 /**
 * Check if an attribute name is an mx-* event attribute.
-* 
+*
 * @param {string} attrName - The attribute name to check
 * @returns {boolean} True if it's an mx-* event attribute
 */
 function isEventAttribute(attrName) {
-	return /^mx-\w+/.test(attrName);
+	return /^mx-[\w-]+/.test(attrName);
 }
 /**
 * Get all mx-* event attributes from an element.
-* 
+*
 * @param {HTMLElement} element - The DOM element
 * @returns {Array<{name: string, value: string}>} Array of attribute name/value pairs
 */
@@ -742,24 +709,53 @@ function getEventAttributes(element) {
 }
 /**
 * Parse all mx-* event attributes from an element.
-* 
+*
 * @param {HTMLElement} element - The DOM element
 * @returns {Array<ParsedEvent>} Array of parsed event configurations
 */
 function parseAllEventAttributes(element) {
 	return getEventAttributes(element).map(({ name, value }) => parseEventAttribute(name, value)).filter((parsed) => parsed !== null);
 }
-
+//#endregion
+//#region src/controllers.js
+const controllers = /* @__PURE__ */ new Map();
+function registerController(name, controllerClass) {
+	controllers.set(name, controllerClass);
+}
+function getController(name) {
+	return controllers.get(name);
+}
+function hasController(name) {
+	return controllers.has(name);
+}
+function removeController(name) {
+	controllers.delete(name);
+}
+function clearControllers() {
+	controllers.clear();
+}
+function resolveController(name) {
+	return controllers.get(name) ?? window[name];
+}
+var controllers_default = {
+	register: registerController,
+	get: getController,
+	has: hasController,
+	remove: removeController,
+	clear: clearControllers,
+	resolve: resolveController
+};
 //#endregion
 //#region src/mate.js
 const OBSERVER_CONFIG = {
 	childList: true,
-	subtree: true,
-	attributes: true
+	subtree: true
 };
 function initController(node, attrName) {
-	const controller$1 = node.getAttribute(attrName);
-	if (controller$1 && window[controller$1]) node.mxController = new window[controller$1](node);
+	const name = node.getAttribute(attrName);
+	if (!name) return;
+	const ControllerClass = controllers_default.resolve(name);
+	if (ControllerClass) node.mxController = new ControllerClass(node);
 }
 function processNode(node) {
 	if (!node.querySelectorAll) return;
@@ -779,6 +775,7 @@ function processNode(node) {
 	}
 }
 function processMutations(mutations) {
+	if (processMutations.disabled) return;
 	mutations.forEach((mutation) => {
 		if (mutation.type !== "childList") return;
 		mutation.addedNodes.forEach((node) => {
@@ -787,26 +784,38 @@ function processMutations(mutations) {
 	});
 }
 function mate() {
+	processMutations.disabled = false;
 	const observer = new MutationObserver(processMutations);
-	document.addEventListener("DOMContentLoaded", () => {
+	const onReady = () => {
 		observer.observe(document, OBSERVER_CONFIG);
 		processNode(document);
-	});
+	};
+	document.addEventListener("DOMContentLoaded", onReady);
+	return function teardown() {
+		document.removeEventListener("DOMContentLoaded", onReady);
+		processMutations.disabled = true;
+		observer.disconnect();
+		runCleanups();
+	};
 }
 mate.registerCapability = capabilities_default.register;
 mate.getCapability = capabilities_default.get;
 mate.hasCapability = capabilities_default.has;
 mate.removeCapability = capabilities_default.remove;
+mate.registerController = controllers_default.register;
+mate.getController = controllers_default.get;
+mate.hasController = controllers_default.has;
+mate.removeController = controllers_default.remove;
+mate.clearControllers = controllers_default.clear;
 mate.registerPresenter = registerPresenter;
 mate.getPresenter = getPresenter;
 mate.hasPresenter = hasPresenter;
-var mate_default = mate;
-
 //#endregion
 //#region src/main.js
 /**
 * Starts the Mate application.
 */
-mate_default();
-
+mate();
+var main_default = mate;
 //#endregion
+export { main_default as default };

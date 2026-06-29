@@ -369,10 +369,9 @@
         <section id="intro">
             <h2>The Perfect Blend</h2>
             <p><span class="highlight">Mate.js</span> allows you to quickly and expressively build dynamic frontends. It introduces custom attributes to map events directly to DOM mutations and requests, keeping your logic right in your markup.</p>
-            <p>There are two syntaxes available:</p>
+            <p>There is a clean, event-centric syntax available:</p>
             <ul class="styled-list">
-                <li><strong><code>mx-*</code> syntax (recommended):</strong> An event-centric shorthand with powerful modifiers.</li>
-                <li><strong><code>mt-*</code> syntax (legacy):</strong> The original attribute-based syntax (still supported for backward compatibility).</li>
+                <li><strong><code>mx-*</code> syntax:</strong> An event-centric shorthand with powerful modifiers.</li>
             </ul>
         </section>
 
@@ -390,7 +389,7 @@ mate();</pre>
             <p>Include Mate.js directly in your HTML:</p>
             <pre>
 &lt;!-- Add this to your HTML head or before closing body tag --&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"&gt;&lt;/script&gt;</pre>
+&lt;script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/mate.global.js"&gt;&lt;/script&gt;</pre>
         </section>
 
         <section id="syntax">
@@ -408,7 +407,7 @@ mate();</pre>
                 <div class="card">
                     <h3>Modifiers</h3>
                     <p>Chain modifiers directly to the event name to alter behavior seamlessly.</p>
-                    <p><code>mx-input.debounce.500ms="..."</code> debounces input. <code>.prevent.stop</code> controls event propagation.</p>
+                    <p><code>mx-input.debounce.500ms="..."</code> debounces input. <code>.prevent.stop</code> controls event propagation. Key modifiers like <code>.enter</code>, <code>.ctrl</code>, <code>.right</code> filter by specific keys and buttons.</p>
                 </div>
 
                 <div class="card">
@@ -455,6 +454,52 @@ mate();</pre>
        placeholder="Search..."
        mx-input.debounce.500ms="@request:@inner" 
        mx-path="/api/search" /&gt;</pre>
+                </div>
+            </div>
+
+            <div class="gourd-container">
+                <h3>Key Modifiers</h3>
+                <p>Filter keyboard and mouse events by specific keys or buttons.</p>
+                <div>
+                    <pre>
+&lt;!-- Only fire on Enter key --&gt;
+&lt;input mx-keydown.enter="@request:@inner" mx-path="/search" /&gt;
+
+&lt;!-- Ctrl+Enter shortcut --&gt;
+&lt;input mx-keydown.enter.ctrl="@request:@inner" mx-path="/save" /&gt;
+
+&lt;!-- Only right-click --&gt;
+&lt;button mx-click.right.prevent="@request:@inner" mx-path="/context"&gt;
+  Right click me
+&lt;/button&gt;</pre>
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-light);">
+                        Key name: <code>.enter</code> <code>.tab</code> <code>.esc</code> <code>.space</code> |
+                        System: <code>.ctrl</code> <code>.shift</code> <code>.alt</code> <code>.meta</code> |
+                        Mouse: <code>.left</code> <code>.middle</code> <code>.right</code>
+                    </p>
+                </div>
+            </div>
+
+            <div class="gourd-container">
+                <h3>Framework Integration (React, Vue, Svelte)</h3>
+                <p>Render framework components as presenters — mate.js handles connectivity, your framework handles presentation.</p>
+                <div>
+                    <pre>
+&lt;!-- React component as presenter --&gt;
+&lt;button mx-click="@request:@react:ProfileCard" mx-path="/api/profile"&gt;
+  Load Profile
+&lt;/button&gt;
+
+&lt;!-- Vue component as presenter --&gt;
+&lt;div mx-load="@request:@vue:Dashboard" mx-path="/api/dashboard"&gt;&lt;/div&gt;
+
+&lt;!-- Svelte component with streaming --&gt;
+&lt;button mx-click="@stream:@svelte:LogViewer" mx-path="/api/logs"&gt;
+  Stream Logs
+&lt;/button&gt;</pre>
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-light);">
+                        Register components via <code>registerComponent('Name', Component)</code> from <code>@nsanta/mate/react</code>, <code>@nsanta/mate/vue</code>, or <code>@nsanta/mate/svelte</code>.
+                    </p>
                 </div>
             </div>
 

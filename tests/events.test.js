@@ -60,6 +60,22 @@ describe('events', () => {
       expect(preventDefaultSpy).toHaveBeenCalled();
     });
 
+    it('should automatically prevent default for submit events', async () => {
+      const parsedEvent = {
+        event: 'submit',
+        modifiers: [],
+        action: 'testAction',
+      };
+
+      await attachEventHandler(node, parsedEvent);
+
+      const submitEvent = new Event('submit', { cancelable: true });
+      const preventDefaultSpy = vi.spyOn(submitEvent, 'preventDefault');
+      node.dispatchEvent(submitEvent);
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+    });
+
     it('should handle once modifier', async () => {
       const parsedEvent = {
         event: 'click',

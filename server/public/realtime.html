@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real-Time — mate.js demos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/controllers.js"></script>
+  <script type="module" src="/dist/main.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="/" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors">← All Demos</a>
+      <span class="font-semibold text-slate-900">Real-Time</span>
+      <div class="flex gap-3 text-sm">
+        <a href="/keyboard.html" class="text-slate-500 hover:text-indigo-600 transition-colors">◀ Keyboard</a>
+        <a href="/extensions.html" class="text-slate-500 hover:text-indigo-600 transition-colors">Extensions ▶</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+    <header>
+      <h1 class="text-3xl font-bold text-slate-900">Real-Time</h1>
+      <p class="text-slate-500 mt-1">Streaming, WebSocket, and Server-Sent Events — all declarative, all reactive</p>
+    </header>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@stream</code> — HTTP Streaming
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Server sends newline-delimited chunks. Each line appears in real-time as it arrives — no waiting for the full response.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex justify-center mb-3">
+          <button class="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors text-sm"
+                  mx-click="@stream:@id:stream-output" mx-path="/stream/demo">
+            Start Stream
+          </button>
+        </div>
+        <div id="stream-output" class="p-3 bg-slate-900 text-green-400 font-mono text-xs rounded overflow-auto max-h-48 min-h-[3rem]">
+          <span class="text-slate-500">$ Waiting for stream...</span>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@stream:@id:stream-output" mx-path="/stream/demo"&gt;
+  Start Stream
+&lt;/button&gt;
+&lt;div id="stream-output"&gt;&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@ws</code> — WebSocket
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Bidirectional chat. Connect, send messages, server echoes back. JSON messages are parsed automatically.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex items-center gap-2 mb-3">
+          <button id="ws-connect-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                  mx-click="@ws:@id:ws-output" mx-path="ws://localhost:3030/ws">
+            Connect
+          </button>
+          <span id="ws-status" class="text-xs font-medium text-slate-400">● Disconnected</span>
+        </div>
+        <div class="flex gap-2 mb-3">
+          <input type="text" id="ws-input" placeholder="Type a message..." disabled
+                 class="flex-1 px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-200" />
+          <button id="ws-send-btn" disabled class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm disabled:bg-slate-300"
+                  onclick="sendWS()">
+            Send
+          </button>
+        </div>
+        <div id="ws-output" class="p-3 bg-slate-900 text-slate-300 font-mono text-xs rounded overflow-auto max-h-48 min-h-[3rem]">
+          <span class="text-slate-500">Messages will appear here...</span>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@ws:@id:ws-output"
+        mx-path="ws://localhost:3030/ws"&gt;
+  Connect
+&lt;/button&gt;
+&lt;div id="ws-output"&gt;&lt;/div&gt;</code></pre>
+      </details>
+      <script>
+        function sendWS() {
+          const input = document.getElementById('ws-input');
+          const btn = document.querySelector('#ws-connect-btn');
+          const client = btn && btn._wsClient;
+          if (client && input.value) {
+            client.send({ message: input.value });
+            input.value = '';
+          }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+          const status = document.getElementById('ws-status');
+          const observer = new MutationObserver(() => {
+            const btn = document.getElementById('ws-connect-btn');
+            if (btn && btn._wsClient && !status.textContent.includes('Connected')) {
+              status.textContent = '● Connected';
+              status.className = 'text-xs font-medium text-emerald-600';
+              document.getElementById('ws-input').disabled = false;
+              document.getElementById('ws-send-btn').disabled = false;
+            }
+          });
+          observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+        });
+        document.getElementById('ws-input').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') sendWS();
+        });
+      </script>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@sse</code> — Server-Sent Events
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Server pushes events every 2 seconds. Connection stays open — each event updates the DOM automatically.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex items-center gap-2 mb-3">
+          <button class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors text-sm"
+                  mx-click="@sse:@id:sse-output" mx-path="/sse/demo">
+            Connect SSE
+          </button>
+          <span id="sse-status" class="text-xs font-medium text-slate-400">● Disconnected</span>
+        </div>
+        <div id="sse-output" class="p-3 bg-slate-900 text-teal-300 font-mono text-xs rounded overflow-auto max-h-48 min-h-[3rem]">
+          <span class="text-slate-500">Events will appear here...</span>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@sse:@id:sse-output" mx-path="/sse/demo"&gt;
+  Connect SSE
+&lt;/button&gt;
+&lt;div id="sse-output"&gt;&lt;/div&gt;</code></pre>
+      </details>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const status = document.getElementById('sse-status');
+          const observer = new MutationObserver(() => {
+            const output = document.getElementById('sse-output');
+            if (output.children.length > 1 || (output.textContent.includes('Connected') && !status.textContent.includes('Connected'))) {
+              status.textContent = '● Connected';
+              status.className = 'text-xs font-medium text-emerald-600';
+            }
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
+        });
+      </script>
+    </div>
+
+  </div>
+</body>
+</html>

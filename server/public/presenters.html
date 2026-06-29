@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presenters — mate.js demos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/controllers.js"></script>
+  <script type="module" src="/dist/main.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="/" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors">← All Demos</a>
+      <span class="font-semibold text-slate-900">Presenters</span>
+      <div class="flex gap-3 text-sm">
+        <a href="/basics.html" class="text-slate-500 hover:text-indigo-600 transition-colors">◀ Basics</a>
+        <a href="/modifiers.html" class="text-slate-500 hover:text-indigo-600 transition-colors">Modifiers ▶</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+    <header>
+      <h1 class="text-3xl font-bold text-slate-900">Presenters</h1>
+      <p class="text-slate-500 mt-1">Control how the server response updates the DOM</p>
+    </header>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@inner</code> — Replace innerHTML
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">The default presenter. Replaces the element's content with the response HTML.</p>
+      <div class="p-6 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4 flex items-center justify-center">
+        <button class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                mx-click="@request:@inner" mx-path="/api/hello">
+          Replace my content
+        </button>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@inner" mx-path="/api/hello"&gt;
+  Replace my content
+&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@outer</code> — Replace entire element
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Replaces the element itself (not just its content). The button disappears and is replaced by the response.</p>
+      <div class="p-6 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4 flex items-center justify-center">
+        <button class="px-6 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors"
+                mx-click="@request:@outer" mx-path="/api/outer">
+          Replace me entirely
+        </button>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@outer" mx-path="/api/outer"&gt;
+  Replace me entirely
+&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@text</code> — XSS-safe text rendering
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Uses <code>textContent</code> instead of <code>innerHTML</code>. The server returns <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> — rendered safely as visible text.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <div class="text-xs font-medium text-emerald-600 mb-2">@text (safe)</div>
+          <div class="p-3 bg-white border rounded text-sm text-slate-700 min-h-[3rem] flex items-center"
+               mx-click="@request:@text" mx-path="/api/text">Click for safe text</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <div class="text-xs font-medium text-rose-600 mb-2">@inner (unsafe — for comparison)</div>
+          <div class="p-3 bg-white border rounded text-sm text-slate-700 min-h-[3rem] flex items-center"
+               mx-click="@request:@inner" mx-path="/api/text">Click to inject HTML</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;!-- Safe: renders as visible text --&gt;
+&lt;div mx-click="@request:@text" mx-path="/api/text"&gt;Click&lt;/div&gt;
+
+&lt;!-- Unsafe: parses as HTML --&gt;
+&lt;div mx-click="@request:@inner" mx-path="/api/text"&gt;Click&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@append</code> — Append content
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Adds new content after existing children. Perfect for chat feeds, logs, or activity streams.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex justify-center mb-3">
+          <button class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-sm"
+                  mx-click="@request:@append" mx-path="/api/items">
+            + Add item
+          </button>
+        </div>
+        <div id="append-list" class="space-y-2 min-h-[2rem]"></div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@append" mx-path="/api/items"&gt;
+  + Add item
+&lt;/button&gt;
+&lt;div id="append-list"&gt;&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@prepend</code> — Prepend content
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Inserts new content before existing children. New items appear at the top — notification stack pattern.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex justify-center mb-3">
+          <button class="px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 transition-colors text-sm"
+                  mx-click="@request:@prepend" mx-path="/api/items">
+            + New notification
+          </button>
+        </div>
+        <div id="prepend-list" class="space-y-2 min-h-[2rem]"></div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@prepend" mx-path="/api/items"&gt;
+  + New notification
+&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@id:target</code> — Update by element ID
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Updates a different element on the page, identified by its ID. The trigger and target are separate.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="flex items-center justify-center p-6 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <button class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                  mx-click="@request:@id:id-target" mx-path="/api/hello">
+            Update target →
+          </button>
+        </div>
+        <div id="id-target" class="flex items-center justify-center p-6 bg-slate-50 rounded-md border border-dashed border-slate-300 text-slate-400 italic text-sm">
+          Waiting for update...
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@id:id-target" mx-path="/api/hello"&gt;
+  Update target
+&lt;/button&gt;
+
+&lt;div id="id-target"&gt;Waiting...&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@class:name</code> — Update all matching elements
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Updates every element with the specified class simultaneously. One request, multiple targets.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex justify-center mb-4">
+          <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+                  mx-click="@request:@class:broadcast-card" mx-path="/api/broadcast">
+            Broadcast to all cards
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="broadcast-card p-3 bg-white border rounded text-center text-slate-400 text-xs">Card A</div>
+          <div class="broadcast-card p-3 bg-white border rounded text-center text-slate-400 text-xs">Card B</div>
+          <div class="broadcast-card p-3 bg-white border rounded text-center text-slate-400 text-xs">Card C</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@class:broadcast-card"
+        mx-path="/api/broadcast"&gt;
+  Broadcast
+&lt;/button&gt;
+
+&lt;div class="broadcast-card"&gt;Card A&lt;/div&gt;
+&lt;div class="broadcast-card"&gt;Card B&lt;/div&gt;
+&lt;div class="broadcast-card"&gt;Card C&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+  </div>
+</body>
+</html>

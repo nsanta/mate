@@ -15,7 +15,16 @@ const teardown = mate();
 ### CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/mate.global.js"></script>
+```
+
+The script auto-starts mate and exposes the `Mate` global, so you can register controllers and capabilities:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/nsanta/mate/dist/mate.global.js"></script>
+<script>
+  Mate.registerController('Counter', Counter);
+</script>
 ```
 
 ## Usage

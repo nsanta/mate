@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basics — mate.js demos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/controllers.js"></script>
+  <script type="module" src="/dist/main.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="/" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors">← All Demos</a>
+      <span class="font-semibold text-slate-900">Basics</span>
+      <div class="flex gap-3 text-sm">
+        <span class="text-slate-300">◀</span>
+        <a href="/presenters.html" class="text-slate-500 hover:text-indigo-600 transition-colors">Presenters ▶</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+    <header>
+      <h1 class="text-3xl font-bold text-slate-900">Basics</h1>
+      <p class="text-slate-500 mt-1">The three foundational patterns of mate.js</p>
+    </header>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@request:@inner</code> — Click to Load
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">The hello world of mate.js. Click a button, fetch HTML, replace the element's content.</p>
+
+      <div class="p-8 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4 flex items-center justify-center">
+        <button class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                mx-click="@request:@inner" mx-path="/api/hello">
+          Click me
+        </button>
+      </div>
+
+      <details class="group">
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button
+  mx-click="@request:@inner"
+  mx-path="/api/hello"&gt;
+  Click me
+&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">mx-load</code> — Auto-Load on Mount
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Content loads immediately when the element enters the DOM. No user interaction needed.</p>
+
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div mx-load="@request:@inner" mx-path="/api/hello">
+          <span class="text-slate-400 animate-pulse text-sm">Loading...</span>
+        </div>
+      </div>
+
+      <details class="group">
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;div mx-load="@request:@inner"
+     mx-path="/api/hello"&gt;
+  &lt;span class="animate-pulse"&gt;Loading...&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">mx-submit</code> — Form Submission
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Submit a form via POST. mate.js serializes the fields and replaces the form with the server response.</p>
+
+      <div class="p-8 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <form class="flex flex-col gap-3 max-w-sm mx-auto"
+              mx-submit="@request:@inner" mx-method="POST" mx-path="/api/submit">
+          <input type="text" name="username" placeholder="Username"
+                 class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required />
+          <input type="email" name="email" placeholder="Email"
+                 class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required />
+          <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Submit
+          </button>
+        </form>
+      </div>
+
+      <details class="group">
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;form mx-submit="@request:@inner"
+      mx-method="POST"
+      mx-path="/api/submit"&gt;
+  &lt;input type="text" name="username" /&gt;
+  &lt;input type="email" name="email" /&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+      </details>
+    </div>
+
+  </div>
+</body>
+</html>

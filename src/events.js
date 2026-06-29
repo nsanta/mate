@@ -33,7 +33,7 @@ function createThrottledHandler(handler, wait) {
 }
 
 function wrapHandlerWithModifiers(handler, parsedEvent) {
-  const { modifiers, debounceMs, throttleMs } = parsedEvent;
+  const { event: eventName, modifiers, debounceMs, throttleMs } = parsedEvent;
 
   let wrappedHandler = handler;
 
@@ -46,6 +46,9 @@ function wrapHandlerWithModifiers(handler, parsedEvent) {
   }
 
   return async (event, node) => {
+    if (eventName === 'submit') {
+      event.preventDefault();
+    }
     applyModifiers(event, modifiers);
 
     if (modifiers.includes(MODIFIERS.SELF) && event.target !== node) {

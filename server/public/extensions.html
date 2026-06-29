@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controllers & Extensions — mate.js demos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/controllers.js"></script>
+  <script type="module" src="/app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="/" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors">← All Demos</a>
+      <span class="font-semibold text-slate-900">Controllers & Extensions</span>
+      <div class="flex gap-3 text-sm">
+        <a href="/realtime.html" class="text-slate-500 hover:text-indigo-600 transition-colors">◀ Real-Time</a>
+        <a href="/advanced.html" class="text-slate-500 hover:text-indigo-600 transition-colors">Advanced ▶</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+    <header>
+      <h1 class="text-3xl font-bold text-slate-900">Controllers & Extensions</h1>
+      <p class="text-slate-500 mt-1">Register custom controllers, capabilities, and presenters to extend mate.js</p>
+    </header>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Controller Basics — <code class="text-indigo-600">mx-controller</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Controllers manage stateful behavior. Register via <code>window.ClassName = ClassName</code> or <code>mate.registerController()</code>. Methods are invoked with <code>@event:@controller:method</code>.</p>
+      <div class="p-6 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex items-center justify-center gap-4">
+          <div mx-controller="Counter" class="flex items-center gap-3">
+            <button class="px-3 py-1 bg-rose-600 text-white rounded text-sm hover:bg-rose-700 transition-colors"
+                    mx-click="@event:@controller:decrement">−</button>
+            <span data-counter-display class="text-2xl font-bold text-slate-700 w-12 text-center">0</span>
+            <button class="px-3 py-1 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 transition-colors"
+                    mx-click="@event:@controller:increment">+</button>
+            <button class="px-2 py-1 bg-slate-200 text-slate-600 rounded text-xs hover:bg-slate-300 transition-colors"
+                    mx-click="@event:@controller:reset">Reset</button>
+          </div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;div mx-controller="Counter"&gt;
+  &lt;button mx-click="@event:@controller:decrement"&gt;−&lt;/button&gt;
+  &lt;span data-counter-display&gt;0&lt;/span&gt;
+  &lt;button mx-click="@event:@controller:increment"&gt;+&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Controller Registry API — <code class="text-indigo-600">mate.registerController()</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Programmatic registration instead of polluting <code>window</code>. Check the browser console to see the registry in action.</p>
+      <div class="p-6 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div mx-controller="RegistryController" class="flex flex-col items-center gap-3">
+          <button class="px-4 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors text-sm"
+                  mx-click="@event:@controller:tick">
+            Tick (via Registry)
+          </button>
+          <div data-registry-display class="text-sm font-mono text-violet-600">Tick #0</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-javascript">mate.registerController('RegistryController', class {
+  constructor(node) {
+    this.node = node;
+    this.count = 0;
+    this.display = node.querySelector('[data-registry-display]');
+  }
+  tick() {
+    this.count++;
+    this.display.textContent = 'Tick #' + this.count;
+  }
+});</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Custom Capability — <code class="text-indigo-600">mate.registerCapability()</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Register reusable logic with methods. The presenter renders the return value automatically.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4 space-y-3">
+        <div class="flex justify-center gap-3">
+          <button class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                  mx-click="Analytics.track:@inner">
+            Analytics.track()
+          </button>
+          <button class="px-4 py-2 bg-indigo-400 text-white rounded-md hover:bg-indigo-500 transition-colors text-sm"
+                  mx-click="Analytics.identify:@inner">
+            Analytics.identify()
+          </button>
+          <button class="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors text-sm"
+                  mx-click="Logger.info:@inner">
+            Logger.info()
+          </button>
+        </div>
+        <div class="p-3 bg-white border rounded text-sm text-slate-400 italic text-center min-h-[2rem]">
+          Click a button to see the capability result
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-javascript">mate.registerCapability('Analytics', {
+  track(node, event, parsedEvent) {
+    return Promise.resolve({ tracked: 'Analytics.track', timestamp: Date.now() });
+  },
+  identify(node, event, parsedEvent) {
+    return Promise.resolve({ identified: true, user: 'demo-user' });
+  },
+});
+
+// Simple function capability
+mate.registerCapability('Logger', (node, method, event) => {
+  return Promise.resolve({ level: method, message: 'Captured' });
+});</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Custom Presenter — <code class="text-indigo-600">mate.registerPresenter()</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Define how responses are rendered. Two custom presenters registered below: <code>@uppercase</code> and <code>@json</code>.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <div class="text-xs font-medium text-indigo-600 mb-2">@uppercase</div>
+          <div class="flex flex-col items-center gap-2">
+            <button class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors"
+                    mx-click="@request:@uppercase:uppercase-result" mx-path="/api/hello">
+              Uppercase the response
+            </button>
+            <div id="uppercase-result" class="p-3 bg-white border rounded w-full text-center text-sm text-slate-400 min-h-[2rem]">
+              Click button
+            </div>
+          </div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <div class="text-xs font-medium text-indigo-600 mb-2">@json (pretty-print)</div>
+          <div class="flex flex-col items-center gap-2">
+            <button class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors"
+                    mx-click="@request:@json:json-result" mx-path="/api/echo-headers">
+              Pretty-print JSON
+            </button>
+            <div id="json-result" class="p-3 bg-white border rounded w-full text-center text-sm text-slate-400 min-h-[2rem]">
+              Click button
+            </div>
+          </div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-javascript">mate.registerPresenter('@uppercase', async (node, response) => {
+  const text = await response.text();
+  node.innerHTML = text.toUpperCase();
+});
+
+mate.registerPresenter('@json', async (node, response) => {
+  const text = await response.text();
+  const parsed = JSON.parse(text);
+  node.innerHTML = '&lt;pre&gt;' + JSON.stringify(parsed, null, 2) + '&lt;/pre&gt;';
+});</code></pre>
+      </details>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced — mate.js demos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/controllers.js"></script>
+  <script type="module" src="/app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
+
+  <meta mx-header name="X-Demo-Header" content="mate.js-demo-server" />
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="/" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors">← All Demos</a>
+      <span class="font-semibold text-slate-900">Advanced</span>
+      <div class="flex gap-3 text-sm">
+        <a href="/extensions.html" class="text-slate-500 hover:text-indigo-600 transition-colors">◀ Extensions</a>
+        <span class="text-slate-300">▶</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+    <header>
+      <h1 class="text-3xl font-bold text-slate-900">Advanced</h1>
+      <p class="text-slate-500 mt-1">Event chaining, form data formats, meta headers, error handling, and action aliases</p>
+    </header>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        <code class="text-indigo-600">@trigger</code> / <code class="text-indigo-600">@dispatch</code> — Event chaining
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Dispatch a DOM event that other elements listen for. <code>@trigger</code> and <code>@dispatch</code> are aliases — both work identically.</p>
+      <div class="space-y-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <h4 class="text-xs font-medium text-slate-500 mb-2">A: Input → trigger form submit (debounced)</h4>
+          <form class="flex flex-col gap-2"
+                mx-submit="@request:@id:trigger-result" mx-method="POST" mx-path="/api/submit">
+            <input type="text" name="query" placeholder="Type... form submits after 500ms pause"
+                   class="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                   mx-input.debounce.500ms="@trigger:submit" />
+            <div id="trigger-result" class="text-xs text-slate-400 italic min-h-[1.5rem]">Form result appears here</div>
+          </form>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <h4 class="text-xs font-medium text-slate-500 mb-2">B: Trigger event on target element (<code>@dispatch</code> alias)</h4>
+          <div class="flex items-center gap-3">
+            <button class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors"
+                    mx-click="@dispatch:ping:#ping-target">
+              Dispatch 'ping' to target
+            </button>
+            <div id="ping-target"
+                 class="flex-1 p-3 bg-white border rounded text-sm text-slate-400 italic text-center"
+                 mx-ping="@request:@inner" mx-path="/api/hello">
+              Waiting for ping...
+            </div>
+          </div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;!-- Trigger form submit from input --&gt;
+&lt;input mx-input.debounce.500ms="@trigger:submit" /&gt;
+
+&lt;!-- Dispatch event to another element --&gt;
+&lt;button mx-click="@dispatch:ping:#ping-target"&gt;Ping&lt;/button&gt;
+&lt;div id="ping-target" mx-ping="@request:@inner" ...&gt;&lt;/div&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        Form Data Formats — <code class="text-indigo-600">@form:json</code> <code class="text-indigo-600">@form:form</code> <code class="text-indigo-600">@form:multipart</code>
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Serialize the nearest ancestor form in different formats. All three buttons share the same form.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <form id="format-form" class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <input type="text" name="username" value="alice" class="px-3 py-2 border rounded-md text-sm" />
+            <input type="text" name="role" value="admin" class="px-3 py-2 border rounded-md text-sm" />
+          </div>
+          <div class="flex gap-2 justify-center">
+            <button type="button" class="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700 transition-colors"
+                    mx-click="@request:@id:format-result" mx-method="POST" mx-path="/api/submit" mx-data="@form:json">
+              @form:json
+            </button>
+            <button type="button" class="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700 transition-colors"
+                    mx-click="@request:@id:format-result" mx-method="POST" mx-path="/api/submit" mx-data="@form:form">
+              @form:form
+            </button>
+            <button type="button" class="px-3 py-1.5 bg-amber-600 text-white rounded text-xs hover:bg-amber-700 transition-colors"
+                    mx-click="@request:@id:format-result" mx-method="POST" mx-path="/api/submit" mx-data="@form:multipart">
+              @form:multipart
+            </button>
+          </div>
+        </form>
+        <div id="format-result" class="mt-3 p-3 bg-white border rounded text-xs text-slate-400 min-h-[2rem]">Result appears here...</div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@id:result"
+        mx-method="POST" mx-path="/api/submit"
+        mx-data="@form:json"&gt;
+  Submit as JSON
+&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        Meta Tag Headers — <code class="text-indigo-600">mx-header</code>
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Headers defined in <code>&lt;meta mx-header&gt;</code> tags are automatically included in all requests. The server echoes them back.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="text-xs text-slate-400 mb-2 font-mono">&lt;meta mx-header name="X-Demo-Header" content="mate.js-demo-server" /&gt;</div>
+        <div class="flex justify-center">
+          <button class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors text-sm"
+                  mx-click="@request:@json:headers-result" mx-path="/api/echo-headers">
+            Send request with meta headers
+          </button>
+        </div>
+        <div id="headers-result" class="mt-3 p-3 bg-white border rounded text-xs text-slate-400 min-h-[2rem]">Headers will appear here...</div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;head&gt;
+  &lt;meta mx-header name="Authorization" content="Bearer TOKEN" /&gt;
+  &lt;meta mx-header name="X-Demo-Header" content="value" /&gt;
+&lt;/head&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">
+        Error Handling — <code class="text-indigo-600">mx-error</code> event
+      </h3>
+      <p class="text-sm text-slate-500 mb-4">Network failures dispatch an <code>mx-error</code> CustomEvent on the trigger element. The normal presentation flow is skipped.</p>
+      <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 mb-4">
+        <div class="flex justify-center gap-3 mb-3">
+          <button id="error-network-btn"
+                  class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors text-sm"
+                  mx-click="@request:@inner" mx-path="https://invalid.invalid/fail">
+            Network error
+          </button>
+          <button id="error-server-btn"
+                  class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors text-sm"
+                  mx-click="@request:@inner" mx-path="/api/error">
+            HTTP 500
+          </button>
+        </div>
+        <div id="error-result" class="p-3 bg-white border rounded text-xs text-center text-slate-400 min-h-[2rem]">Click a button to trigger an error</div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click="@request:@inner"
+        mx-path="/api/error"&gt;
+  Trigger error
+&lt;/button&gt;
+
+&lt;script&gt;
+  btn.addEventListener('mx-error', (e) =&gt; {
+    console.log('Request failed:', e.detail);
+  });
+&lt;/script&gt;</code></pre>
+      </details>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const result = document.getElementById('error-result');
+          document.getElementById('error-network-btn').addEventListener('mx-error', (e) => {
+            result.textContent = '✗ Network error: ' + e.detail.error.message;
+            result.className = 'p-3 bg-rose-50 border border-rose-200 rounded text-xs text-center text-rose-700 min-h-[2rem]';
+          });
+          document.getElementById('error-server-btn').addEventListener('mx-error', (e) => {
+            result.textContent = '✗ Server error: ' + e.detail.url;
+            result.className = 'p-3 bg-amber-50 border border-amber-200 rounded text-xs text-center text-amber-700 min-h-[2rem]';
+          });
+        });
+      </script>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6"
+         mx-alias-event="@request:@id:alias-result" mx-path="/api/echo?key=Alias+fired">
+      <h3 class="text-lg font-semibold mb-1">
+        Action Aliases — <code class="text-indigo-600">@dispatch</code> <code class="text-indigo-600">@passthrough</code>
+      </h3>
+      <p class="text-sm text-slate-500 mb-4"><code>@dispatch</code> is an alias for <code>@trigger</code>. <code>@passthrough</code> is an alias for <code>@event</code>. They behave identically — choose whichever reads better.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <div class="text-xs font-medium text-purple-600 mb-2">@trigger</div>
+          <button class="px-3 py-2 bg-purple-600 text-white rounded text-sm w-full"
+                  mx-click="@trigger:alias-event">Trigger</button>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <div class="text-xs font-medium text-indigo-600 mb-2">@dispatch (same thing)</div>
+          <button class="px-3 py-2 bg-indigo-600 text-white rounded text-sm w-full"
+                  mx-click="@dispatch:alias-event">Dispatch</button>
+        </div>
+      </div>
+      <div class="p-2 text-center text-xs text-slate-400 min-h-[1.5rem]" id="alias-target">
+        Click either button — same result
+      </div>
+      <div id="alias-result" class="mt-2 text-center min-h-[1.5rem]"></div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;!-- These are identical --&gt;
+&lt;button mx-click="@trigger:submit"&gt;Trigger&lt;/button&gt;
+&lt;button mx-click="@dispatch:submit"&gt;Dispatch&lt;/button&gt;
+
+&lt;!-- These are identical --&gt;
+&lt;button mx-click="@event:@controller:method"&gt;Event&lt;/button&gt;
+&lt;button mx-click="@passthrough:@controller:method"&gt;Passthrough&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+  </div>
+</body>
+</html>

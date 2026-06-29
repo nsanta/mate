@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keyboard & Mouse — mate.js demos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/controllers.js"></script>
+  <script type="module" src="/dist/main.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="/" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors">← All Demos</a>
+      <span class="font-semibold text-slate-900">Keyboard & Mouse</span>
+      <div class="flex gap-3 text-sm">
+        <a href="/modifiers.html" class="text-slate-500 hover:text-indigo-600 transition-colors">◀ Modifiers</a>
+        <a href="/realtime.html" class="text-slate-500 hover:text-indigo-600 transition-colors">Real-Time ▶</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+    <header>
+      <h1 class="text-3xl font-bold text-slate-900">Keyboard & Mouse</h1>
+      <p class="text-slate-500 mt-1">Filter events by key name, modifier keys, and mouse buttons</p>
+    </header>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Key Name Modifiers — <code class="text-indigo-600">.enter</code> <code class="text-indigo-600">.esc</code> <code class="text-indigo-600">.tab</code> <code class="text-indigo-600">.space</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Each input only fires when its specific key is pressed. Try them — other keys are ignored.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.enter</label>
+          <input type="text" placeholder="Press Enter..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.enter="@request:@id:key-enter" mx-path="/api/echo?key=Enter" />
+          <div id="key-enter" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.esc</label>
+          <input type="text" placeholder="Press Escape..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.esc="@request:@id:key-esc" mx-path="/api/echo?key=Escape" />
+          <div id="key-esc" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.tab (with .prevent)</label>
+          <input type="text" placeholder="Press Tab..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.tab.prevent="@request:@id:key-tab" mx-path="/api/echo?key=Tab" />
+          <div id="key-tab" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.space</label>
+          <input type="text" placeholder="Press Space..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.space="@request:@id:key-space" mx-path="/api/echo?key=Space" />
+          <div id="key-space" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;input mx-keydown.enter="@request:@id:result" mx-path="/api/echo?key=Enter" /&gt;
+&lt;input mx-keydown.esc="@request:@id:result" mx-path="/api/echo?key=Escape" /&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">System Key Modifiers — <code class="text-indigo-600">.ctrl</code> <code class="text-indigo-600">.shift</code> <code class="text-indigo-600">.alt</code> <code class="text-indigo-600">.meta</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Only fires when the modifier key is held down. Try pressing Ctrl+any key, Shift+any key, etc.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.ctrl</label>
+          <input type="text" placeholder="Hold Ctrl + any key..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.ctrl="@request:@id:sys-ctrl" mx-path="/api/echo?key=Ctrl%2BKey" />
+          <div id="sys-ctrl" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.shift</label>
+          <input type="text" placeholder="Hold Shift + any key..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.shift="@request:@id:sys-shift" mx-path="/api/echo?key=Shift%2BKey" />
+          <div id="sys-shift" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.alt</label>
+          <input type="text" placeholder="Hold Alt + any key..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.alt="@request:@id:sys-alt" mx-path="/api/echo?key=Alt%2BKey" />
+          <div id="sys-alt" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">.meta (Cmd/Win)</label>
+          <input type="text" placeholder="Hold Meta + any key..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.meta="@request:@id:sys-meta" mx-path="/api/echo?key=Meta%2BKey" />
+          <div id="sys-meta" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;input mx-keydown.ctrl="@request:@id:result" ... /&gt;
+&lt;input mx-keydown.shift="@request:@id:result" ... /&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Key Combinations — <code class="text-indigo-600">.enter.ctrl</code> <code class="text-indigo-600">.tab.shift</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Chain a key name + system key. All modifiers must be satisfied simultaneously (AND logic).</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">Ctrl + Enter</label>
+          <input type="text" placeholder="Hold Ctrl, then press Enter..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.enter.ctrl="@request:@id:combo-1" mx-path="/api/echo?key=Ctrl%2BEnter" />
+          <div id="combo-1" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300">
+          <label class="block text-xs font-medium text-slate-500 mb-2">Shift + Tab</label>
+          <input type="text" placeholder="Hold Shift, then press Tab..." class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500"
+                 mx-keydown.tab.shift="@request:@id:combo-2" mx-path="/api/echo?key=Shift%2BTab" />
+          <div id="combo-2" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;input mx-keydown.enter.ctrl="@request:@id:result"
+       mx-path="/api/echo?key=Ctrl+Enter" /&gt;</code></pre>
+      </details>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold mb-1">Mouse Button Modifiers — <code class="text-indigo-600">.left</code> <code class="text-indigo-600">.middle</code> <code class="text-indigo-600">.right</code></h3>
+      <p class="text-sm text-slate-500 mb-4">Each button only fires on its designated mouse button. Right-click uses <code>.prevent</code> to suppress the context menu.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 text-center">
+          <button class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors w-full"
+                  mx-click.left="@request:@id:mouse-left" mx-path="/api/mouse-echo?button=Left">
+            Left Click
+          </button>
+          <div id="mouse-left" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 text-center">
+          <button class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors w-full"
+                  mx-click.middle="@request:@id:mouse-middle" mx-path="/api/mouse-echo?button=Middle">
+            Middle Click
+          </button>
+          <div id="mouse-middle" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-md border border-dashed border-slate-300 text-center">
+          <button class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors w-full"
+                  mx-click.right.prevent="@request:@id:mouse-right" mx-path="/api/mouse-echo?button=Right">
+            Right Click
+          </button>
+          <div id="mouse-right" class="mt-2 text-xs text-slate-400 italic">Waiting...</div>
+        </div>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium select-none">▸ View code</summary>
+        <pre class="mt-3 rounded-md text-xs overflow-auto"><code class="language-html">&lt;button mx-click.left="@request:@id:result" mx-path="/api/mouse-echo?button=Left"&gt;
+  Left
+&lt;/button&gt;
+&lt;button mx-click.right.prevent="@request:@id:result" mx-path="/api/mouse-echo?button=Right"&gt;
+  Right
+&lt;/button&gt;</code></pre>
+      </details>
+    </div>
+
+  </div>
+</body>
+</html>

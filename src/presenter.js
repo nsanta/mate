@@ -54,7 +54,15 @@ async function prepend(node, response) {
 }
 
 async function controller(node, response, func) {
-  node.mxController[func](response);
+  let current = node;
+  while (current && !current.mxController) {
+    current = current.parentElement;
+  }
+  if (current && current.mxController) {
+    current.mxController[func](response);
+  } else {
+    console.warn(`Controller not found for function "${func}"`);
+  }
 }
 
 const PRESENTERS = {

@@ -36,26 +36,25 @@ window.CounterController = CounterController;
 
 ## Attaching a Controller
 
-Use the `mt-controller` attribute to attach a controller to an element.
+Use the `mx-controller` attribute to attach a controller to an element.
 
 ```html
-<div mt-controller="CounterController">
+<div mx-controller="CounterController">
   Count: 0
 </div>
 ```
 
-When Mate initializes this element, it will create a new instance of `CounterController`, passing the DOM element as an argument. The instance is stored on the element's `mtController` property.
+When Mate initializes this element, it will create a new instance of `CounterController`, passing the DOM element as an argument. The instance is stored on the element's `mxController` property.
 
 ## Using with Presenters
 
-You can direct the response of a request to a specific method in your controller using the `@controller` presenter.
+You can direct the response of a request to a specific method in your controller using the `@controller` presenter action.
 
 ```html
 <button 
-  mt-controller="DataController"
-  mt-on="click:@request"
-  mt-path="/api/data"
-  mt-pr="@controller:processData"
+  mx-controller="DataController"
+  mx-click="@request:@controller:processData"
+  mx-path="/api/data"
 >
   Fetch Data
 </button>

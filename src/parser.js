@@ -1,8 +1,8 @@
 /**
  * Parser for mx-* event-centric shorthand syntax.
- * 
+ *
  * Syntax: mx-{EVENT}[.modifiers]="{ACTION|CAPABILITY.method}[:{PRESENTATION}[:{TARGET}]]"
- * 
+ *
  * Examples:
  *   mx-click="@request:@inner"
  *   mx-click="@request:@id:target-div"
@@ -29,50 +29,50 @@
 
 /**
  * Parse an mx-* attribute name and value into a structured object.
- * 
+ *
  * @param {string} attrName - The attribute name (e.g., "mx-click.prevent")
  * @param {string} attrValue - The attribute value (e.g., "@request:@id:target")
  * @returns {ParsedEvent|null} Parsed event configuration or null if invalid
  */
 export function parseEventAttribute(attrName, attrValue) {
-  const nameMatch = attrName.match(/^mx-(\w+)(?:\.(.*))?$/);
+  const nameMatch = attrName.match(/^mx-([\w-]+)(?:\.(.*))?$/);
   if (!nameMatch) return null;
 
   const [, event, modifiersStr] = nameMatch;
-  
+
   let debounceMs = null;
   let throttleMs = null;
   const parsedModifiers = [];
-  
+
   if (modifiersStr) {
     let remaining = modifiersStr;
-    
+
     const debounceMatch = remaining.match(/(?:^|\.)debounce(?:\.(\d+)ms)?/);
     if (debounceMatch) {
       debounceMs = debounceMatch[1] ? parseInt(debounceMatch[1], 10) : 250;
       parsedModifiers.push('debounce');
       remaining = remaining.replace(debounceMatch[0], '');
     }
-    
+
     const throttleMatch = remaining.match(/(?:^|\.)throttle(?:\.(\d+)ms)?/);
     if (throttleMatch) {
       throttleMs = throttleMatch[1] ? parseInt(throttleMatch[1], 10) : 250;
       parsedModifiers.push('throttle');
       remaining = remaining.replace(throttleMatch[0], '');
     }
-    
-    const otherModifiers = remaining.split('.').filter(m => m.length > 0);
+
+    const otherModifiers = remaining.split('.').filter((m) => m.length > 0);
     parsedModifiers.push(...otherModifiers);
   }
 
   const valueParts = attrValue.split(':');
-  
+
   let capability = null;
   let method = null;
   let action = null;
-  
+
   const actionOrCapability = valueParts[0];
-  
+
   if (actionOrCapability.startsWith('@')) {
     action = actionOrCapability;
   } else if (actionOrCapability.includes('.')) {
@@ -90,11 +90,11 @@ export function parseEventAttribute(attrName, attrValue) {
   if (valueParts.length >= 2) {
     presentation = valueParts[1];
   }
-  
+
   if (valueParts.length >= 3) {
     target = valueParts[2];
   }
-  
+
   if (valueParts.length >= 4) {
     presentationOption = valueParts[3];
   }
@@ -115,17 +115,17 @@ export function parseEventAttribute(attrName, attrValue) {
 
 /**
  * Check if an attribute name is an mx-* event attribute.
- * 
+ *
  * @param {string} attrName - The attribute name to check
  * @returns {boolean} True if it's an mx-* event attribute
  */
 export function isEventAttribute(attrName) {
-  return /^mx-\w+/.test(attrName);
+  return /^mx-[\w-]+/.test(attrName);
 }
 
 /**
  * Get all mx-* event attributes from an element.
- * 
+ *
  * @param {HTMLElement} element - The DOM element
  * @returns {Array<{name: string, value: string}>} Array of attribute name/value pairs
  */
@@ -142,7 +142,7 @@ export function getEventAttributes(element) {
 
 /**
  * Parse all mx-* event attributes from an element.
- * 
+ *
  * @param {HTMLElement} element - The DOM element
  * @returns {Array<ParsedEvent>} Array of parsed event configurations
  */
@@ -150,7 +150,7 @@ export function parseAllEventAttributes(element) {
   const eventAttrs = getEventAttributes(element);
   return eventAttrs
     .map(({ name, value }) => parseEventAttribute(name, value))
-    .filter(parsed => parsed !== null);
+    .filter((parsed) => parsed !== null);
 }
 
 export default {

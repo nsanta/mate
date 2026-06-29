@@ -7,14 +7,14 @@ import { describe, it, expect, vi } from 'vitest';
 // A better approach for main.js which just calls a function is to verify that function is called.
 
 vi.mock('../src/mate.js', () => ({
-    default: vi.fn(),
+  default: vi.fn(),
 }));
 
 import mate from '../src/mate.js';
 
 describe('main', () => {
-    it('should call mate() on import', async () => {
-        await import('../src/main.js');
-        expect(mate).toHaveBeenCalled();
-    });
+  it('should call mate() on import', async () => {
+    await import('../src/main.js');
+    expect(mate).toHaveBeenCalled();
+  });
 });

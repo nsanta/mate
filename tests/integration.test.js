@@ -95,9 +95,11 @@ describe('integration: full pipeline', () => {
 
       teardown = initMate();
 
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      const event = new Event('submit', { bubbles: true, cancelable: true });
+      form.dispatchEvent(event);
       await tick();
 
+      expect(event.defaultPrevented).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/save',
         expect.objectContaining({ method: 'POST' }),
@@ -169,6 +171,35 @@ describe('integration: full pipeline', () => {
       expect(calls[0][0]).toBe('log');
 
       mate.removeController('Logger');
+      document.body.removeChild(div);
+    });
+
+    it('@event:@controller:method works on child/descendant elements within controller', async () => {
+      const calls = [];
+      mate.registerController('NestedLogger', class {
+        constructor(node) { this.node = node; }
+        log() { calls.push('nested-log'); }
+      });
+
+      const parent = document.createElement('div');
+      parent.setAttribute('mx-controller', 'NestedLogger');
+      
+      const button = document.createElement('button');
+      button.setAttribute('mx-click', '@event:@controller:log');
+      parent.appendChild(button);
+      document.body.appendChild(parent);
+
+      teardown = initMate();
+      await tick();
+
+      button.click();
+      await tick();
+
+      expect(calls).toHaveLength(1);
+      expect(calls[0]).toBe('nested-log');
+
+      mate.removeController('NestedLogger');
+      document.body.removeChild(parent);
     });
   });
 
